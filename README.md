@@ -1,6 +1,6 @@
 # Rally Scoreboard
 
-Rally Scoreboard is the definitive Rally example app.
+Rally Scoreboard is the definitive [Rally](https://rally.hexdocs.pm/) example app.
 
 The project illustrates how Rally, Proute, Libero, and Marmot can be used to create a client and server from one source tree.
 
