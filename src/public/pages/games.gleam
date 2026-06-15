@@ -41,7 +41,7 @@ pub type GameSummary {
 
 /// Server request to load the public games list.
 pub type ServerMsg {
-  PublicGamesLoad
+  Load
 }
 
 pub type LoadResult {

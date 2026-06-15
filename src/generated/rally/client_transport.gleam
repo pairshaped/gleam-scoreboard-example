@@ -38,15 +38,15 @@ pub fn send_admin_games_load(
 }
 
 @target(javascript)
-pub fn send_public_game_detail_load(
+pub fn send_public_games_id_load(
   message message: a,
   on_result on_result: fn(Result(load_result, List(ApiLoadError))) -> msg,
 ) -> Effect(msg) {
   effect.from(fn(dispatch) {
     let request_id = next_request_id()
     let frame =
-      client_protocol.encode_public_game_detail_request(request_id, message)
-    send_public_game_detail_load_frame(request_id, frame, on_result, dispatch)
+      client_protocol.encode_public_games_id_request(request_id, message)
+    send_public_games_id_load_frame(request_id, frame, on_result, dispatch)
   })
 }
 
@@ -76,15 +76,15 @@ pub fn send_public_standings_load(
 }
 
 @target(javascript)
-pub fn send_public_team_detail_load(
+pub fn send_public_teams_slug_load(
   message message: a,
   on_result on_result: fn(Result(load_result, List(ApiLoadError))) -> msg,
 ) -> Effect(msg) {
   effect.from(fn(dispatch) {
     let request_id = next_request_id()
     let frame =
-      client_protocol.encode_public_team_detail_request(request_id, message)
-    send_public_team_detail_load_frame(request_id, frame, on_result, dispatch)
+      client_protocol.encode_public_teams_slug_request(request_id, message)
+    send_public_teams_slug_load_frame(request_id, frame, on_result, dispatch)
   })
 }
 
@@ -124,7 +124,7 @@ fn send_admin_games_load_frame(
 
 @target(javascript)
 @external(javascript, "./client_transport_ffi.mjs", "send_load_frame")
-fn send_public_game_detail_load_frame(
+fn send_public_games_id_load_frame(
   _request_id: Int,
   _frame: BitArray,
   _on_result: fn(Result(load_result, List(ApiLoadError))) -> msg,
@@ -157,7 +157,7 @@ fn send_public_standings_load_frame(
 
 @target(javascript)
 @external(javascript, "./client_transport_ffi.mjs", "send_load_frame")
-fn send_public_team_detail_load_frame(
+fn send_public_teams_slug_load_frame(
   _request_id: Int,
   _frame: BitArray,
   _on_result: fn(Result(load_result, List(ApiLoadError))) -> msg,

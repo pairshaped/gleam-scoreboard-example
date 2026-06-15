@@ -1,15 +1,15 @@
 # Rally Scoreboard
 
-Rally Scoreboard is the definitive [Rally](https://rally.hexdocs.pm/) example app.
+Rally Scoreboard is an example app for [Rally](https://rally.hexdocs.pm/).
 
-The project illustrates how Rally, Proute, Libero, and Marmot can be used to create a client and server from one source tree.
+The project shows how Rally, Proute, Libero, and Marmot can build a client and server from one source tree.
 
 ```sh
 gleam build --target javascript
 gleam build --target erlang
 ```
 
-Target-specific behavior is marked at the declaration or import boundary. Today that means Gleam's `@target(javascript)` and `@target(erlang)` syntax.
+Target-specific code is marked where it starts. Today that means Gleam's `@target(javascript)` and `@target(erlang)` syntax.
 
 Generated code covers route, page, wire, hydration, SSR, browser boot, websocket transport, server dispatch, theme, and Libero codec glue.
 
@@ -22,31 +22,33 @@ Generated code covers route, page, wire, hydration, SSR, browser boot, websocket
 - `src/generated/libero/**` is generated Libero codec, decoder, atom, wire, and contract glue.
 - `src/generated/sql/**` is generated typed SQL for Erlang-only server paths.
 
-Authored SQL lives beside the page or workflow that owns it, in a local `sql/` directory. Generated SQL stays under `src/generated/sql/**`.
+Authored SQL lives beside the page or workflow that uses it, in a local `sql/` directory. Generated SQL stays under `src/generated/sql/**`.
 
 Generated source is checked in so the example can be read, built, and tested without running every generator first.
 
-## Page Contract
+## Page Shape
 
-Pages own their local `Model`, browser `Message`, pure `initial_model`, shared `view`, and browser `update` functions. Pages that cross the server boundary also own page-local `ServerMsg` and `LoadResult` types, Erlang-only `load`, and, for save-capable pages, Erlang-only `handle_save` and optional `after_save`. Broadcast-capable pages expose `broadcast_subscriptions` and `apply_broadcast`.
+Pages define their local `Model`, browser `Message`, pure `initial_model`, shared `view`, and browser `update` functions. Pages that load or save server data also define page-local `ServerMsg` and `LoadResult` types, Erlang-only `load`, and, for pages that can save, Erlang-only `handle_save` and optional `after_save`. Pages that receive broadcasts define `broadcast_subscriptions` and `apply_broadcast`.
 
-Most pages omit `init`; use it only for page-specific browser startup effects such as browser APIs, local storage, focus, measurement, or one-off DOM effects. Standard page data loading is owned by generated Rally glue.
+`ServerMsg` constructors are local to the page module. Use short names like `Load`, `UpdateScore`, and `MarkFinal` unless they collide with another constructor in the same module. Rally namespaces the generated protocol helpers from the page route, so the public games page still gets generated helpers such as `encode_public_games_request`.
 
-Page data shapes belong to the page that renders and updates them. Shared types are reserved for stable app concepts independent of a page.
+Most pages omit `init`; use it only for page-specific browser startup effects such as browser APIs, local storage, focus, measurement, or one-off DOM effects. Generated Rally glue handles normal page data loading.
 
-Wire-crossing types may reference page-local types, `src/broadcasts.gleam`, primitives, and containers. Helper, service, query, business, formatting, and display types can be used as behavior, but their owned shapes cannot cross the wire.
+Page data shapes belong to the page that renders and updates them. Shared types are for app concepts that do not belong to one page.
 
-Client-side application behavior is authored in Gleam. JS or TS is reserved for tiny FFI modules around browser APIs.
+Wire-crossing types may reference page-local types, `src/broadcasts.gleam`, primitives, and containers. Pages may call helpers, services, queries, formatters, and display code, but types defined by those modules cannot cross the wire.
+
+Client-side app behavior is written in Gleam. JS or TS is for tiny FFI modules around browser APIs.
 
 ## Design Rules
 
-Page data shapes stay local to the page that renders and updates them. A list page, detail page, and admin editing page may duplicate similar fields because they describe different page needs. Extract a shared type only when it is a stable app concept independent of a page, such as an identifier, enum, topic, or value object.
+Page data shapes stay local to the page that renders and updates them. A list page, detail page, and admin editing page may duplicate similar fields because they describe different page needs. Extract a shared type only when it is an app concept that does not belong to one page, such as an identifier, enum, topic, or value object.
 
-Authored SQL lives beside the page or workflow that owns the server behavior, in a local `sql/` directory. Generated Marmot output stays under `src/generated/sql`.
+Authored SQL lives beside the page or workflow that uses it, in a local `sql/` directory. Generated Marmot output stays under `src/generated/sql`.
 
-Page filenames are the author-facing routing surface. Authored modules should not import generated route modules, match on generated route constructors, or construct generated page wrappers. Generated Proute and Rally modules own route parsing, page wrappers, page message wrappers, and route or page dispatch.
+Page filenames define routes. Authored modules should not import generated route modules, match on generated route constructors, or construct generated page wrappers. Generated Proute and Rally modules handle route parsing, page wrappers, page message wrappers, and route or page dispatch.
 
-## Current Commands
+## Commands
 
 From the repository root:
 

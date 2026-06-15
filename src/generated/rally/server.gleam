@@ -34,12 +34,12 @@ pub fn load_admin_games(
 }
 
 @target(javascript)
-pub fn load_public_game_detail(
+pub fn load_public_games_id(
   message message: a,
   on_result on_result: fn(Result(load_result, List(runtime_load.LoadError))) ->
     msg,
 ) -> Effect(msg) {
-  client_transport.send_public_game_detail_load(
+  client_transport.send_public_games_id_load(
     message: message,
     on_result: fn(result) { on_result(map_load_result(result)) },
   )
@@ -70,12 +70,12 @@ pub fn load_public_standings(
 }
 
 @target(javascript)
-pub fn load_public_team_detail(
+pub fn load_public_teams_slug(
   message message: a,
   on_result on_result: fn(Result(load_result, List(runtime_load.LoadError))) ->
     msg,
 ) -> Effect(msg) {
-  client_transport.send_public_team_detail_load(
+  client_transport.send_public_teams_slug_load(
     message: message,
     on_result: fn(result) { on_result(map_load_result(result)) },
   )

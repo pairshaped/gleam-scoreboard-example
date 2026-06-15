@@ -40,7 +40,7 @@ pub type GameDetail {
 
 /// Server request to load one game by id.
 pub type ServerMsg {
-  PublicGameDetailLoad(game_id: Int)
+  Load(game_id: Int)
 }
 
 pub type LoadResult {

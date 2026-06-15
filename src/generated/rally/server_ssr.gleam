@@ -38,11 +38,11 @@ import public/page_shared_state as public_page_shared_state
 @target(erlang)
 import public/pages/games as public_games_wire
 @target(erlang)
-import public/pages/games/id_ as public_game_detail_wire
+import public/pages/games/id_ as public_games_id_wire
 @target(erlang)
 import public/pages/standings as public_standings_wire
 @target(erlang)
-import public/pages/teams/slug_ as public_team_detail_wire
+import public/pages/teams/slug_ as public_teams_slug_wire
 @target(erlang)
 import rally/runtime/load as runtime_load
 @target(erlang)
@@ -78,8 +78,8 @@ pub type AdminLoadRoute {
 @target(erlang)
 pub type PublicLoadRoute {
   PublicNoLoad
-  PublicGameDetailLoad(
-    to_message: fn(Result(public_game_detail_wire.LoadResult, List(String))) ->
+  PublicGamesIdLoad(
+    to_message: fn(Result(public_games_id_wire.LoadResult, List(String))) ->
       public_pages.Message,
   )
   PublicGamesLoad(
@@ -90,8 +90,8 @@ pub type PublicLoadRoute {
     to_message: fn(Result(public_standings_wire.LoadResult, List(String))) ->
       public_pages.Message,
   )
-  PublicTeamDetailLoad(
-    to_message: fn(Result(public_team_detail_wire.LoadResult, List(String))) ->
+  PublicTeamsSlugLoad(
+    to_message: fn(Result(public_teams_slug_wire.LoadResult, List(String))) ->
       public_pages.Message,
   )
 }
@@ -145,19 +145,19 @@ pub fn admin_load_route(route route: admin_routes.Route) -> AdminLoadRoute {
 pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
   case route {
     public_routes.GamesId(id: _) ->
-      PublicGameDetailLoad(to_message: fn(result) {
+      PublicGamesIdLoad(to_message: fn(result) {
         case result {
-          Ok(public_game_detail_wire.PublicGameDetailLoaded(data)) ->
-            public_pages.GamesIdMsg(public_game_detail_wire.Loaded(Ok(data)))
+          Ok(public_games_id_wire.PublicGameDetailLoaded(data)) ->
+            public_pages.GamesIdMsg(public_games_id_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.GamesIdMsg(
-              public_game_detail_wire.Loaded(
+              public_games_id_wire.Loaded(
                 Error(runtime_load.LoadError(message: message)),
               ),
             )
           Error([]) ->
             public_pages.GamesIdMsg(
-              public_game_detail_wire.Loaded(
+              public_games_id_wire.Loaded(
                 Error(runtime_load.LoadError(message: "Could not load page.")),
               ),
             )
@@ -221,19 +221,19 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
         }
       })
     public_routes.TeamsSlug(slug: _) ->
-      PublicTeamDetailLoad(to_message: fn(result) {
+      PublicTeamsSlugLoad(to_message: fn(result) {
         case result {
-          Ok(public_team_detail_wire.PublicTeamDetailLoaded(data)) ->
-            public_pages.TeamsSlugMsg(public_team_detail_wire.Loaded(Ok(data)))
+          Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data)) ->
+            public_pages.TeamsSlugMsg(public_teams_slug_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.TeamsSlugMsg(
-              public_team_detail_wire.Loaded(
+              public_teams_slug_wire.Loaded(
                 Error(runtime_load.LoadError(message: message)),
               ),
             )
           Error([]) ->
             public_pages.TeamsSlugMsg(
-              public_team_detail_wire.Loaded(
+              public_teams_slug_wire.Loaded(
                 Error(runtime_load.LoadError(message: "Could not load page.")),
               ),
             )
@@ -335,14 +335,14 @@ pub fn public_boot_page(
 
   case public_load_route(route) {
     PublicNoLoad -> #(page, [])
-    PublicGameDetailLoad(to_message:) -> {
+    PublicGamesIdLoad(to_message:) -> {
       let result = case route {
         public_routes.GamesId(id:) ->
           case int.parse(id) {
             Ok(game_id) ->
-              case public_game_detail_wire.load(load_context, game_id) {
+              case public_games_id_wire.load(load_context, game_id) {
                 Ok(data) ->
-                  Ok(public_game_detail_wire.PublicGameDetailLoaded(data))
+                  Ok(public_games_id_wire.PublicGameDetailLoaded(data))
                 Error(runtime_load.LoadError(message: message)) ->
                   Error([message])
               }
@@ -353,7 +353,7 @@ pub fn public_boot_page(
       boot_loaded_page(
         page: page,
         result: result,
-        hydration_payload: public_game_detail_hydration_payload,
+        hydration_payload: public_games_id_hydration_payload,
         to_message: to_message,
         update_page: update_page,
       )
@@ -384,11 +384,11 @@ pub fn public_boot_page(
         update_page: update_page,
       )
     }
-    PublicTeamDetailLoad(to_message:) -> {
+    PublicTeamsSlugLoad(to_message:) -> {
       let result = case route {
         public_routes.TeamsSlug(slug:) ->
-          case public_team_detail_wire.load(load_context, slug) {
-            Ok(data) -> Ok(public_team_detail_wire.PublicTeamDetailLoaded(data))
+          case public_teams_slug_wire.load(load_context, slug) {
+            Ok(data) -> Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data))
             Error(runtime_load.LoadError(message: message)) -> Error([message])
           }
         _ -> Error(["Unexpected route."])
@@ -396,7 +396,7 @@ pub fn public_boot_page(
       boot_loaded_page(
         page: page,
         result: result,
-        hydration_payload: public_team_detail_hydration_payload,
+        hydration_payload: public_teams_slug_hydration_payload,
         to_message: to_message,
         update_page: update_page,
       )
@@ -416,13 +416,13 @@ pub fn admin_games_hydration_payload(
 }
 
 @target(erlang)
-pub fn public_game_detail_hydration_payload(
-  result result: Result(public_game_detail_wire.LoadResult, List(String)),
+pub fn public_games_id_hydration_payload(
+  result result: Result(public_games_id_wire.LoadResult, List(String)),
 ) -> String {
   server_protocol.ensure()
   result
   |> map_load_result
-  |> server_protocol.encode_public_game_detail_load_result(request_id: 0)
+  |> server_protocol.encode_public_games_id_load_result(request_id: 0)
   |> bit_array.base64_url_encode(False)
 }
 
@@ -449,13 +449,13 @@ pub fn public_standings_hydration_payload(
 }
 
 @target(erlang)
-pub fn public_team_detail_hydration_payload(
-  result result: Result(public_team_detail_wire.LoadResult, List(String)),
+pub fn public_teams_slug_hydration_payload(
+  result result: Result(public_teams_slug_wire.LoadResult, List(String)),
 ) -> String {
   server_protocol.ensure()
   result
   |> map_load_result
-  |> server_protocol.encode_public_team_detail_load_result(request_id: 0)
+  |> server_protocol.encode_public_teams_slug_load_result(request_id: 0)
   |> bit_array.base64_url_encode(False)
 }
 

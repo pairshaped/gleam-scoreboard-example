@@ -1,6 +1,6 @@
 # Unified Target Source
 
-Rally Scoreboard uses one authored Gleam source tree. The source tree compiles directly for JavaScript and Erlang, with target-specific declarations and imports marked where target-specific behavior starts. Rally should not generate a separate client package from server-shaped source.
+Rally Scoreboard uses one authored Gleam source tree. The source tree compiles directly for JavaScript and Erlang, with target-specific declarations and imports marked where target-specific code starts. Rally should not generate a separate client package from server-shaped source.
 
 ```text
 src/
@@ -10,7 +10,7 @@ src/
   generated/
 ```
 
-The target builds are the compatibility oracle:
+Run both target builds when checking generated and authored source:
 
 ```sh
 gleam build --target javascript
@@ -47,13 +47,14 @@ pub type Message {
 }
 
 pub type ServerMsg {
-  AdminGamesLoad
-  AdminGamesUpdateScore(
+  Load
+  UpdateScore(
     game_id: Int,
     home_score: Int,
     away_score: Int,
     period: String,
   )
+  MarkFinal(game_id: Int)
 }
 
 pub type LoadResult {
@@ -79,7 +80,7 @@ pub fn initial_model(
 /// the page.
 /// Most Rally pages omit this. Use it only for page-specific client startup
 /// effects such as browser APIs, local storage, focus, measurement, or one-off
-/// DOM effects. Standard page data loading is owned by generated Rally glue.
+/// DOM effects. Generated Rally glue handles normal page data loading.
 pub fn init(
   page_shared_state page_shared_state: AdminPageSharedState,
   query_params query_params: page_input.QueryParams,
@@ -99,7 +100,7 @@ pub fn update(
     AdjustHome(id, home_score, away_score, delta) -> #(
       Model(..model, saving: True),
       server.save_admin_games(
-        message: AdminGamesUpdateScore(
+        message: UpdateScore(
           game_id: id,
           home_score: home_score + delta,
           away_score: away_score,
@@ -133,15 +134,17 @@ pub fn after_save(
 }
 ```
 
-Shared imports come first, followed by Erlang-targeted imports, then JavaScript-targeted imports. The module body follows the same target grouping when practical: shared declarations first, then init/shared declarations, then server/client sections for target-specific behavior.
+Shared imports come first, followed by Erlang-targeted imports, then JavaScript-targeted imports. The module body follows the same target grouping when practical: shared declarations first, then init/shared declarations, then server/client sections for target-specific code.
 
-The section comments are for humans. Rally validates the page contract by function names, signatures, target availability, and wire-visible types.
+The section comments are for readers. Rally checks the page contract by function names, signatures, target availability, and wire-visible types.
 
 `initial_model` is the normal starting point for a page. `init` is optional. A page should define `init` only when it needs page-local browser startup work that cannot be represented as loaded page data or normal update behavior. Rally-generated browser glue calls `init` when it exists; otherwise it constructs the page with `initial_model` and no effect. Rally-generated SSR glue uses `initial_model` so server rendering never depends on browser-only effects.
 
-Pages that load server data define a page-local `ServerMsg` load variant, a `LoadResult`, and Erlang-only `load`. Pages that save server data define save variants on `ServerMsg`, browser update branches that call a generated page save effect, Erlang-only `handle_save`, and optional Erlang-only `after_save` when a successful save should emit a typed broadcast.
+Pages that load server data define a page-local `ServerMsg` load variant, a `LoadResult`, and Erlang-only `load`. Pages that save server data define save variants on `ServerMsg`, browser update branches that call a generated page save effect, Erlang-only `handle_save`, and optional Erlang-only `after_save` when a successful save should send a typed broadcast.
 
-Broadcast-capable pages define `broadcast_subscriptions` and `apply_broadcast`. Generated browser glue uses subscriptions to sync websocket topics for the active page, then routes decoded broadcast events back through the page's `apply_broadcast` hook.
+`ServerMsg` constructors are page-local Gleam names. Prefer names such as `Load`, `UpdateScore`, and `MarkFinal`; add more context only when there is a real same-module constructor collision. Rally gives generated protocol helpers route-scoped names such as `encode_admin_games_request` and `save_admin_games`.
+
+Pages that receive broadcasts define `broadcast_subscriptions` and `apply_broadcast`. Generated browser glue uses subscriptions to sync websocket topics for the active page, then routes decoded broadcast events back through the page's `apply_broadcast` hook.
 
 ## Generated Save Effects
 
@@ -150,12 +153,12 @@ effect:
 
 ```gleam
 server.save_admin_games(
-  message: AdminGamesMarkFinal(id),
+  message: MarkFinal(id),
   on_result: fn(result) { Saved(result) },
 )
 ```
 
-The effect returns Lustre `Effect(Message)`. Rally owns request id generation,
+The effect returns Lustre `Effect(Message)`. Rally handles request id generation,
 pending callback registration, wire encoding, result decoding, and dispatching
 the selected local `Message`.
 
@@ -167,17 +170,17 @@ Page code carries local context in the completion message only when it needs tha
 
 ```gleam
 server.save_admin_games(
-  message: AdminGamesUpdateScore(game_id:, home_score:, away_score:, period:),
+  message: UpdateScore(game_id:, home_score:, away_score:, period:),
   on_result: fn(result) { ScoreSaved(game_id, result) },
 )
 ```
 
-Server-originated state events should be delivered to other subscribed clients, excluding the connection that initiated the mutation. Request results manage request lifecycle for the initiating page. Broadcast events carry server-authoritative state for subscribed peers.
+Server state events should be delivered to other subscribed clients, excluding the connection that made the change. Request results handle the request lifecycle for the page that sent the request. Broadcast events carry server state for subscribed peers.
 
 Generated load/save transport helpers are internal Rally glue. Authored page
 code uses generated page-specific save functions such as
 `server.save_admin_games(message:, on_result:)` for page-local server commands,
-while generated Rally browser glue owns standard page data loading.
+while generated Rally browser glue handles normal page data loading.
 
 ## Authoring Style
 
@@ -203,20 +206,20 @@ Imports are grouped by target first:
 
 Groups are separated by a blank line. Within each target group, imports are sorted alphabetically.
 
-Generated output and rewritten source should preserve this order and style where `gleam format` allows it. The formatter owns final import formatting and preserves blank-line groups. Rally should not fight the formatter, emit random import order, or churn section layout when semantics did not change.
+Generated output and rewritten source should keep this order and style where `gleam format` allows it. The formatter controls final import formatting and preserves blank-line groups. Rally should not fight the formatter, write random import order, or change section layout when behavior did not change.
 
 ## Page Data
 
 Page data shapes belong to the page that renders and updates them. A list page, detail page, and form page should duplicate similar fields instead of sharing one model just because their current shapes overlap.
 
-Shared types are reserved for stable app concepts independent of a page, such as identifiers, enums, or value objects. Page payloads, form models, table rows, detail data, and save responses stay page local.
+Shared types are for app concepts that do not belong to one page, such as identifiers, enums, or value objects. Page payloads, form models, table rows, detail data, and save responses stay page local.
 
 The approved wire namespaces are page-local types and `src/broadcasts.gleam`.
 Wire-visible page protocols may reference those types, primitives, and standard
 containers. They may not reference helper, service, query, business, formatting,
 or display types, even transitively.
 
-Helpers are still allowed as behavior. A page may call helpers and services, but their owned shapes cannot become wire contract shapes.
+Pages may call helpers and services, but types defined by helpers and services cannot become wire shapes.
 
 ## Generated Source
 
@@ -230,42 +233,42 @@ src/generated/libero/**/*.erl
 src/generated/sql/**/*.gleam
 ```
 
-Proute owns file routes, page enums, route params, query params, and page
-dispatch shape. Rally consumes Proute output and generates page protocol code,
+Proute handles file routes, page enums, route params, query params, and page
+dispatch shape. Rally reads Proute output and generates page protocol code,
 browser boot, hydration, SSR, client transport, websocket transport, server
 dispatch, theme, and result glue. Libero writes codec, atom, wire, decoder, and
-contract artifacts. Marmot writes typed SQL modules for Erlang-only server
+contract files. Marmot writes typed SQL modules for Erlang-only server
 paths.
 
 Generated modules use the same target annotation rules as user-authored modules.
 
-Rally-generated code should be thin glue: codecs, route glue, wire transport,
-hydration, SSR, browser boot, websocket transport, server dispatch, theme, and
-result envelopes. Rally should not generate a full client app. Client-side
-application behavior is authored in Gleam, with JS or TS limited to tiny FFI
+Rally-generated code should stay small and mechanical: codecs, route glue, wire
+transport, hydration, SSR, browser boot, websocket transport, server dispatch,
+theme, and result envelopes. Rally should not generate a full client app.
+Client-side app behavior is written in Gleam, with JS or TS limited to tiny FFI
 modules for browser APIs.
 
 ## Target Boundaries
 
-Target annotations belong where target-specific behavior begins:
+Target annotations belong where target-specific code begins:
 
 - JavaScript-only imports and declarations for browser APIs, DOM effects, browser storage, and browser transport setup
 - Erlang-only imports and declarations for SQL, secrets, filesystem access, server runtime APIs, and server handlers
 - unannotated declarations only when they compile and make sense on both targets
 
-Target-specific imports should be annotated too. Inactive-target builds should not retain useless or invalid imports.
+Target-specific imports should be annotated too. Inactive-target builds should not keep unused or invalid imports.
 
-Boundary diagnostics should name the violated contract, the page/action/channel, the offending type or import, the path that made it reachable, and the smallest likely fix.
+Boundary diagnostics should name the broken rule, the page/action/channel, the offending type or import, the path that made it reachable, and the smallest likely fix.
 
 ## Routing And Decoding
 
-Proute owns URL routing and page identity. Rally consumes Proute's page, action, or channel identity when dispatching incoming wire messages, and decodes page-local payloads only after that destination is known. This keeps page-local type names local: two pages can both define `Item` without needing global type identity hashes.
+Proute handles URL routing and page identity. Rally uses Proute's page, action, or channel identity when dispatching incoming wire messages, and decodes page-local payloads only after that destination is known. This keeps page-local type names local: two pages can both define `Item` without needing global type identity hashes.
 
 ## SQL And Marmot
 
 Marmot output belongs under root `src/generated/sql`.
 
-Authored SQL files live beside the page or workflow that owns the server behavior, in a local `sql/` directory:
+Authored SQL files live beside the page or workflow that uses them, in a local `sql/` directory:
 
 ```text
 src/public/pages/items.gleam
@@ -275,6 +278,6 @@ src/public/pages/items/id_.gleam
 src/public/pages/items/id_/sql/get_item.sql
 ```
 
-Workflow modules follow the same rule: the workflow owns its SQL locally, and generated SQL still goes to `src/generated/sql`.
+Workflow modules follow the same rule: the workflow keeps its SQL locally, and generated SQL still goes to `src/generated/sql`.
 
 Server code imports these modules from Erlang-only declarations. JavaScript builds must not keep code paths that import SQL modules.

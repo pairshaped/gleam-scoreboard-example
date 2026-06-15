@@ -57,7 +57,7 @@ pub type TeamDetail {
 
 /// Server request to load one team by slug.
 pub type ServerMsg {
-  PublicTeamDetailLoad(slug: String)
+  Load(slug: String)
 }
 
 pub type LoadResult {

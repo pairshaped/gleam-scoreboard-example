@@ -57,7 +57,7 @@ pub type StandingRow {
 
 /// Server request to load standings data.
 pub type ServerMsg {
-  PublicStandingsLoad
+  Load
 }
 
 pub type LoadResult {

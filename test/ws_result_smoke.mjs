@@ -5,7 +5,7 @@ import {
   decode_result_envelope,
   encode_public_games_request,
 } from "../build/dev/javascript/scoreboard_unified/generated/rally/client_protocol.mjs";
-import { PublicGamesLoad, PublicGamesLoaded } from "../build/dev/javascript/scoreboard_unified/public/pages/games.mjs";
+import { Load, PublicGamesLoaded } from "../build/dev/javascript/scoreboard_unified/public/pages/games.mjs";
 import { BitArray, Ok } from "../build/dev/javascript/scoreboard_unified/gleam.mjs";
 
 const baseUrl = process.env.SCOREBOARD_BASE_URL ?? "http://localhost:8081";
@@ -49,7 +49,7 @@ async function requestFrames() {
     }, 5_000);
 
     socket.addEventListener("open", () => {
-      const frame = encode_public_games_request(requestId, new PublicGamesLoad());
+      const frame = encode_public_games_request(requestId, new Load());
       socket.send(frame.rawBuffer);
     });
 

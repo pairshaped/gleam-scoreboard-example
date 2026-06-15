@@ -24,11 +24,11 @@ import mist.{type Next, type WebsocketConnection, type WebsocketMessage}
 @target(erlang)
 import public/pages/games as public_games_wire
 @target(erlang)
-import public/pages/games/id_ as public_game_detail_wire
+import public/pages/games/id_ as public_games_id_wire
 @target(erlang)
 import public/pages/standings as public_standings_wire
 @target(erlang)
-import public/pages/teams/slug_ as public_team_detail_wire
+import public/pages/teams/slug_ as public_teams_slug_wire
 @target(erlang)
 import rally/runtime/load as runtime_load
 @target(erlang)
@@ -135,7 +135,7 @@ pub fn handle_client_frame(
     Ok(Nil) -> Nil
     Error(Nil) ->
       case
-        try_public_game_detail_request(
+        try_public_games_id_request(
           state: state,
           conn: conn,
           data: data,
@@ -165,7 +165,7 @@ pub fn handle_client_frame(
                 Ok(Nil) -> Nil
                 Error(Nil) ->
                   case
-                    try_public_team_detail_request(
+                    try_public_teams_slug_request(
                       state: state,
                       conn: conn,
                       data: data,
@@ -234,7 +234,7 @@ fn try_admin_games_request(
     Ok(server_protocol.AdminGamesClientRequest(
       request_id: request_id,
       module: "admin/pages/games",
-      message: admin_games_wire.AdminGamesLoad,
+      message: admin_games_wire.Load,
     )) -> {
       send_admin_games_load_result(
         state: state,
@@ -250,7 +250,7 @@ fn try_admin_games_request(
       message: message,
     )) ->
       case message {
-        admin_games_wire.AdminGamesLoad -> Error(Nil)
+        admin_games_wire.Load -> Error(Nil)
         _ -> {
           send_admin_games_save_result(
             state: state,
@@ -268,19 +268,19 @@ fn try_admin_games_request(
 }
 
 @target(erlang)
-fn try_public_game_detail_request(
+fn try_public_games_id_request(
   state state: state,
   conn conn: WebsocketConnection,
   data data: BitArray,
   handlers handlers: Handlers(state, admin_auth),
 ) -> Result(Nil, Nil) {
-  case server_protocol.decode_public_game_detail_request(data) {
-    Ok(server_protocol.PublicGameDetailClientRequest(
+  case server_protocol.decode_public_games_id_request(data) {
+    Ok(server_protocol.PublicGamesIdClientRequest(
       request_id: request_id,
       module: "public/pages/games/id_",
-      message: public_game_detail_wire.PublicGameDetailLoad(game_id:),
+      message: public_games_id_wire.Load(game_id:),
     )) -> {
-      send_public_game_detail_load_result(
+      send_public_games_id_load_result(
         state: state,
         conn: conn,
         request_id: request_id,
@@ -305,7 +305,7 @@ fn try_public_games_request(
     Ok(server_protocol.PublicGamesClientRequest(
       request_id: request_id,
       module: "public/pages/games",
-      message: public_games_wire.PublicGamesLoad,
+      message: public_games_wire.Load,
     )) -> {
       send_public_games_load_result(
         state: state,
@@ -331,7 +331,7 @@ fn try_public_standings_request(
     Ok(server_protocol.PublicStandingsClientRequest(
       request_id: request_id,
       module: "public/pages/standings",
-      message: public_standings_wire.PublicStandingsLoad,
+      message: public_standings_wire.Load,
     )) -> {
       send_public_standings_load_result(
         state: state,
@@ -347,19 +347,19 @@ fn try_public_standings_request(
 }
 
 @target(erlang)
-fn try_public_team_detail_request(
+fn try_public_teams_slug_request(
   state state: state,
   conn conn: WebsocketConnection,
   data data: BitArray,
   handlers handlers: Handlers(state, admin_auth),
 ) -> Result(Nil, Nil) {
-  case server_protocol.decode_public_team_detail_request(data) {
-    Ok(server_protocol.PublicTeamDetailClientRequest(
+  case server_protocol.decode_public_teams_slug_request(data) {
+    Ok(server_protocol.PublicTeamsSlugClientRequest(
       request_id: request_id,
       module: "public/pages/teams/slug_",
-      message: public_team_detail_wire.PublicTeamDetailLoad(slug:),
+      message: public_teams_slug_wire.Load(slug:),
     )) -> {
-      send_public_team_detail_load_result(
+      send_public_teams_slug_load_result(
         state: state,
         conn: conn,
         request_id: request_id,
@@ -404,7 +404,7 @@ fn send_admin_games_load_result(
 }
 
 @target(erlang)
-fn send_public_game_detail_load_result(
+fn send_public_games_id_load_result(
   state state: state,
   conn conn: WebsocketConnection,
   request_id request_id: Int,
@@ -412,8 +412,8 @@ fn send_public_game_detail_load_result(
   game_id game_id: Int,
 ) -> Nil {
   let result =
-    case public_game_detail_wire.load(handlers.load_context(state), game_id) {
-      Ok(data) -> Ok(public_game_detail_wire.PublicGameDetailLoaded(data))
+    case public_games_id_wire.load(handlers.load_context(state), game_id) {
+      Ok(data) -> Ok(public_games_id_wire.PublicGameDetailLoaded(data))
       Error(runtime_load.LoadError(message: message)) -> Error([message])
     }
     |> map_page_load_result
@@ -422,7 +422,7 @@ fn send_public_game_detail_load_result(
   let _sent =
     mist.send_binary_frame(
       conn,
-      server_protocol.encode_public_game_detail_load_result(
+      server_protocol.encode_public_games_id_load_result(
         request_id: request_id,
         result: result,
       ),
@@ -483,7 +483,7 @@ fn send_public_standings_load_result(
 }
 
 @target(erlang)
-fn send_public_team_detail_load_result(
+fn send_public_teams_slug_load_result(
   state state: state,
   conn conn: WebsocketConnection,
   request_id request_id: Int,
@@ -491,8 +491,8 @@ fn send_public_team_detail_load_result(
   slug slug: String,
 ) -> Nil {
   let result =
-    case public_team_detail_wire.load(handlers.load_context(state), slug) {
-      Ok(data) -> Ok(public_team_detail_wire.PublicTeamDetailLoaded(data))
+    case public_teams_slug_wire.load(handlers.load_context(state), slug) {
+      Ok(data) -> Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data))
       Error(runtime_load.LoadError(message: message)) -> Error([message])
     }
     |> map_page_load_result
@@ -501,7 +501,7 @@ fn send_public_team_detail_load_result(
   let _sent =
     mist.send_binary_frame(
       conn,
-      server_protocol.encode_public_team_detail_load_result(
+      server_protocol.encode_public_teams_slug_load_result(
         request_id: request_id,
         result: result,
       ),

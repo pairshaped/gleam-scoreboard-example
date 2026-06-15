@@ -65,14 +65,9 @@ pub type SaveError {
 
 /// Server requests for the admin games page.
 pub type ServerMsg {
-  AdminGamesLoad
-  AdminGamesUpdateScore(
-    game_id: Int,
-    home_score: Int,
-    away_score: Int,
-    period: String,
-  )
-  AdminGamesMarkFinal(game_id: Int)
+  Load
+  UpdateScore(game_id: Int, home_score: Int, away_score: Int, period: String)
+  MarkFinal(game_id: Int)
 }
 
 pub type Model {
@@ -83,7 +78,7 @@ pub type Message {
   AdjustAway(id: Int, home_score: Int, away_score: Int, delta: Int)
   AdjustHome(id: Int, home_score: Int, away_score: Int, delta: Int)
   Loaded(Result(List(AdminGameSummary), runtime_load.LoadError))
-  MarkFinal(id: Int)
+  MarkFinalClicked(id: Int)
   Saved(Result(GameUpdate, SaveError))
 }
 
@@ -113,7 +108,7 @@ pub fn update(
       effect.none(),
     )
     Saved(Error(_)) -> #(model, effect.none())
-    AdjustAway(..) | AdjustHome(..) | MarkFinal(..) -> #(
+    AdjustAway(..) | AdjustHome(..) | MarkFinalClicked(..) -> #(
       model,
       message_effect(msg),
     )
@@ -158,7 +153,7 @@ pub fn view(model model: Model) -> Element(Message) {
     on_adjust_home: fn(id, home_score, away_score, delta) {
       AdjustHome(id:, home_score:, away_score:, delta:)
     },
-    on_mark_final: fn(id) { MarkFinal(id:) },
+    on_mark_final: fn(id) { MarkFinalClicked(id:) },
   )
 }
 
@@ -316,7 +311,7 @@ fn message_effect(msg: Message) -> Effect(Message) {
   case msg {
     AdjustAway(id, home_score, away_score, delta) ->
       server.save_admin_games(
-        message: AdminGamesUpdateScore(
+        message: UpdateScore(
           game_id: id,
           home_score: home_score,
           away_score: clamp_score(away_score + delta),
@@ -326,7 +321,7 @@ fn message_effect(msg: Message) -> Effect(Message) {
       )
     AdjustHome(id, home_score, away_score, delta) ->
       server.save_admin_games(
-        message: AdminGamesUpdateScore(
+        message: UpdateScore(
           game_id: id,
           home_score: clamp_score(home_score + delta),
           away_score: away_score,
@@ -334,11 +329,10 @@ fn message_effect(msg: Message) -> Effect(Message) {
         ),
         on_result: fn(result) { Saved(map_save_result(result)) },
       )
-    MarkFinal(id) ->
-      server.save_admin_games(
-        message: AdminGamesMarkFinal(id),
-        on_result: fn(result) { Saved(map_save_result(result)) },
-      )
+    MarkFinalClicked(id) ->
+      server.save_admin_games(message: MarkFinal(id), on_result: fn(result) {
+        Saved(map_save_result(result))
+      })
     Loaded(_) | Saved(_) -> effect.none()
   }
 }
@@ -394,8 +388,8 @@ pub fn handle_save(
   msg: ServerMsg,
 ) -> Result(GameUpdate, SaveError) {
   case msg {
-    AdminGamesLoad -> Error(SaveError(message: "Load is not a save action."))
-    AdminGamesUpdateScore(game_id, home_score, away_score, period) ->
+    Load -> Error(SaveError(message: "Load is not a save action."))
+    UpdateScore(game_id, home_score, away_score, period) ->
       case
         games_sql.update_game_score(
           db:,
@@ -411,7 +405,7 @@ pub fn handle_save(
           Error(SaveError(message: "Could not save game."))
       }
 
-    AdminGamesMarkFinal(game_id) ->
+    MarkFinal(game_id) ->
       case games_sql.update_game_final(db:, game_id:) {
         Ok([row, ..]) -> Ok(game_update_from_final_row(row))
         Ok([]) -> Error(SaveError(message: "Game not found."))

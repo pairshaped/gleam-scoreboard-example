@@ -14,11 +14,11 @@ import generated/rally/result.{type ApiLoadError, type ApiSaveError}
 @target(erlang)
 import public/pages/games as public_games_wire
 @target(erlang)
-import public/pages/games/id_ as public_game_detail_wire
+import public/pages/games/id_ as public_games_id_wire
 @target(erlang)
 import public/pages/standings as public_standings_wire
 @target(erlang)
-import public/pages/teams/slug_ as public_team_detail_wire
+import public/pages/teams/slug_ as public_teams_slug_wire
 
 @target(erlang)
 pub fn ensure() -> Nil {
@@ -35,11 +35,11 @@ pub type AdminGamesClientRequest {
 }
 
 @target(erlang)
-pub type PublicGameDetailClientRequest {
-  PublicGameDetailClientRequest(
+pub type PublicGamesIdClientRequest {
+  PublicGamesIdClientRequest(
     request_id: Int,
     module: String,
-    message: public_game_detail_wire.ServerMsg,
+    message: public_games_id_wire.ServerMsg,
   )
 }
 
@@ -62,11 +62,11 @@ pub type PublicStandingsClientRequest {
 }
 
 @target(erlang)
-pub type PublicTeamDetailClientRequest {
-  PublicTeamDetailClientRequest(
+pub type PublicTeamsSlugClientRequest {
+  PublicTeamsSlugClientRequest(
     request_id: Int,
     module: String,
-    message: public_team_detail_wire.ServerMsg,
+    message: public_teams_slug_wire.ServerMsg,
   )
 }
 
@@ -82,12 +82,12 @@ pub fn decode_admin_games_request(
 }
 
 @target(erlang)
-pub fn decode_public_game_detail_request(
+pub fn decode_public_games_id_request(
   bytes: BitArray,
-) -> Result(PublicGameDetailClientRequest, Nil) {
+) -> Result(PublicGamesIdClientRequest, Nil) {
   case decode_any(bytes) {
     Ok(#(request_id, module, message)) ->
-      Ok(PublicGameDetailClientRequest(request_id:, module:, message:))
+      Ok(PublicGamesIdClientRequest(request_id:, module:, message:))
     _ -> Error(Nil)
   }
 }
@@ -115,12 +115,12 @@ pub fn decode_public_standings_request(
 }
 
 @target(erlang)
-pub fn decode_public_team_detail_request(
+pub fn decode_public_teams_slug_request(
   bytes: BitArray,
-) -> Result(PublicTeamDetailClientRequest, Nil) {
+) -> Result(PublicTeamsSlugClientRequest, Nil) {
   case decode_any(bytes) {
     Ok(#(request_id, module, message)) ->
-      Ok(PublicTeamDetailClientRequest(request_id:, module:, message:))
+      Ok(PublicTeamsSlugClientRequest(request_id:, module:, message:))
     _ -> Error(Nil)
   }
 }
@@ -137,13 +137,13 @@ pub fn encode_admin_games_load_result(
 }
 
 @target(erlang)
-pub fn encode_public_game_detail_load_result(
+pub fn encode_public_games_id_load_result(
   request_id request_id: Int,
-  result result: Result(public_game_detail_wire.LoadResult, List(ApiLoadError)),
+  result result: Result(public_games_id_wire.LoadResult, List(ApiLoadError)),
 ) -> BitArray {
   encode_result_frame(
     request_id,
-    encode_public_game_detail_load_result_payload(result),
+    encode_public_games_id_load_result_payload(result),
   )
 }
 
@@ -170,13 +170,13 @@ pub fn encode_public_standings_load_result(
 }
 
 @target(erlang)
-pub fn encode_public_team_detail_load_result(
+pub fn encode_public_teams_slug_load_result(
   request_id request_id: Int,
-  result result: Result(public_team_detail_wire.LoadResult, List(ApiLoadError)),
+  result result: Result(public_teams_slug_wire.LoadResult, List(ApiLoadError)),
 ) -> BitArray {
   encode_result_frame(
     request_id,
-    encode_public_team_detail_load_result_payload(result),
+    encode_public_teams_slug_load_result_payload(result),
   )
 }
 
@@ -207,18 +207,18 @@ fn encode_admin_games_load_result_value(
 }
 
 @target(erlang)
-fn encode_public_game_detail_load_result_payload(
-  result: Result(public_game_detail_wire.LoadResult, List(ApiLoadError)),
+fn encode_public_games_id_load_result_payload(
+  result: Result(public_games_id_wire.LoadResult, List(ApiLoadError)),
 ) -> Result(a, List(ApiLoadError)) {
-  encode_ok_payload(result, encode_public_game_detail_load_result_value)
+  encode_ok_payload(result, encode_public_games_id_load_result_value)
 }
 
 @target(erlang)
 @external(erlang, "generated@libero_wire", "encode_public_pages_games_id___load_result")
-fn encode_public_game_detail_load_result_value(
-  _value: public_game_detail_wire.LoadResult,
+fn encode_public_games_id_load_result_value(
+  _value: public_games_id_wire.LoadResult,
 ) -> a {
-  panic as "generated/rally/server_protocol.encode_public_game_detail_load_result_value external missing"
+  panic as "generated/rally/server_protocol.encode_public_games_id_load_result_value external missing"
 }
 
 @target(erlang)
@@ -252,18 +252,18 @@ fn encode_public_standings_load_result_value(
 }
 
 @target(erlang)
-fn encode_public_team_detail_load_result_payload(
-  result: Result(public_team_detail_wire.LoadResult, List(ApiLoadError)),
+fn encode_public_teams_slug_load_result_payload(
+  result: Result(public_teams_slug_wire.LoadResult, List(ApiLoadError)),
 ) -> Result(a, List(ApiLoadError)) {
-  encode_ok_payload(result, encode_public_team_detail_load_result_value)
+  encode_ok_payload(result, encode_public_teams_slug_load_result_value)
 }
 
 @target(erlang)
 @external(erlang, "generated@libero_wire", "encode_public_pages_teams_slug___load_result")
-fn encode_public_team_detail_load_result_value(
-  _value: public_team_detail_wire.LoadResult,
+fn encode_public_teams_slug_load_result_value(
+  _value: public_teams_slug_wire.LoadResult,
 ) -> a {
-  panic as "generated/rally/server_protocol.encode_public_team_detail_load_result_value external missing"
+  panic as "generated/rally/server_protocol.encode_public_teams_slug_load_result_value external missing"
 }
 
 @target(erlang)

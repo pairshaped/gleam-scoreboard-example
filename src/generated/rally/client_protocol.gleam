@@ -24,7 +24,7 @@ pub fn encode_admin_games_request(
 }
 
 @target(javascript)
-pub fn encode_public_game_detail_request(
+pub fn encode_public_games_id_request(
   request_id request_id: Int,
   message message: a,
 ) -> BitArray {
@@ -48,7 +48,7 @@ pub fn encode_public_standings_request(
 }
 
 @target(javascript)
-pub fn encode_public_team_detail_request(
+pub fn encode_public_teams_slug_request(
   request_id request_id: Int,
   message message: a,
 ) -> BitArray {
@@ -76,7 +76,7 @@ pub fn decode_admin_games_load_result(
 }
 
 @target(javascript)
-pub fn decode_public_game_detail_load_result(
+pub fn decode_public_games_id_load_result(
   bytes: BitArray,
 ) -> Result(#(Int, Result(load_result, List(ApiLoadError))), Nil) {
   decode_result_envelope(bytes)
@@ -97,7 +97,7 @@ pub fn decode_public_standings_load_result(
 }
 
 @target(javascript)
-pub fn decode_public_team_detail_load_result(
+pub fn decode_public_teams_slug_load_result(
   bytes: BitArray,
 ) -> Result(#(Int, Result(load_result, List(ApiLoadError))), Nil) {
   decode_result_envelope(bytes)

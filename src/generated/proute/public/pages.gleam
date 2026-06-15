@@ -82,40 +82,30 @@ pub fn load(
       let route_params = page_input.GamesIdRouteParams(id:)
       let #(page_model, page_effect) =
         games_id_page.init(page_shared_state, route_params, query_params)
-      #(
-        GamesIdPage(route_params:, model: page_model),
-        effect.map(page_effect, GamesIdMsg),
-      )
+      #(GamesIdPage(route_params:, model: page_model), effect.map(page_effect, GamesIdMsg))
     }
     routes.SignIn -> {
-      let page_model =
-        sign_in_page.initial_model(page_shared_state, query_params)
+      let page_model = sign_in_page.initial_model(page_shared_state, query_params)
       let page_effect = effect.none()
       #(SignInPage(page_model), effect.map(page_effect, SignInMsg))
     }
     routes.Standings -> {
-      let page_model =
-        standings_page.initial_model(page_shared_state, query_params)
+      let page_model = standings_page.initial_model(page_shared_state, query_params)
       let page_effect = effect.none()
       #(StandingsPage(page_model), effect.map(page_effect, StandingsMsg))
     }
     routes.TeamsSlug(slug) -> {
       let route_params = page_input.TeamsSlugRouteParams(slug:)
-      let page_model =
-        teams_slug_page.initial_model(
-          page_shared_state,
-          route_params,
-          query_params,
-        )
-      let page_effect = effect.none()
-      #(
-        TeamsSlugPage(route_params:, model: page_model),
-        effect.map(page_effect, TeamsSlugMsg),
+      let page_model = teams_slug_page.initial_model(
+        page_shared_state,
+        route_params,
+        query_params,
       )
+      let page_effect = effect.none()
+      #(TeamsSlugPage(route_params:, model: page_model), effect.map(page_effect, TeamsSlugMsg))
     }
     routes.NotFound -> {
-      let page_model =
-        not_found_page.initial_model(page_shared_state, query_params)
+      let page_model = not_found_page.initial_model(page_shared_state, query_params)
       let page_effect = effect.none()
       #(NotFoundPage(page_model), effect.map(page_effect, NotFoundMsg))
     }
@@ -141,31 +131,26 @@ pub fn initial_page(
     }
     routes.GamesId(id) -> {
       let route_params = page_input.GamesIdRouteParams(id:)
-      let page_model =
-        games_id_page.initial_model(
-          page_shared_state,
-          route_params,
-          query_params,
-        )
+      let page_model = games_id_page.initial_model(
+        page_shared_state,
+        route_params,
+        query_params,
+      )
       GamesIdPage(route_params:, model: page_model)
     }
     routes.SignIn -> {
       SignInPage(sign_in_page.initial_model(page_shared_state, query_params))
     }
     routes.Standings -> {
-      StandingsPage(standings_page.initial_model(
-        page_shared_state,
-        query_params,
-      ))
+      StandingsPage(standings_page.initial_model(page_shared_state, query_params))
     }
     routes.TeamsSlug(slug) -> {
       let route_params = page_input.TeamsSlugRouteParams(slug:)
-      let page_model =
-        teams_slug_page.initial_model(
-          page_shared_state,
-          route_params,
-          query_params,
-        )
+      let page_model = teams_slug_page.initial_model(
+        page_shared_state,
+        route_params,
+        query_params,
+      )
       TeamsSlugPage(route_params:, model: page_model)
     }
     routes.NotFound -> {

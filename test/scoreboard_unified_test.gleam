@@ -46,8 +46,7 @@ pub fn normalize_display_name_test() {
 pub fn mark_final_returns_save_ack_payload_and_game_update_test() {
   let db = live_game_db()
 
-  let result =
-    admin_games_page.handle_save(db, admin_games_page.AdminGamesMarkFinal(1))
+  let result = admin_games_page.handle_save(db, admin_games_page.MarkFinal(1))
   let broadcast = broadcasts.game_updated_broadcast(db, 1)
 
   case result, broadcast {
@@ -80,7 +79,7 @@ pub fn update_score_returns_save_ack_payload_and_game_update_test() {
   let result =
     admin_games_page.handle_save(
       db,
-      admin_games_page.AdminGamesUpdateScore(1, 5, 2, "Live"),
+      admin_games_page.UpdateScore(1, 5, 2, "Live"),
     )
   let broadcast = broadcasts.game_updated_broadcast(db, 1)
 

@@ -52,13 +52,13 @@ import public/page_shared_state as public_page_shared_state
 @target(javascript)
 import public/pages/games as public_games_wire
 @target(javascript)
-import public/pages/games/id_ as public_game_detail_wire
+import public/pages/games/id_ as public_games_id_wire
 @target(javascript)
 import public/pages/home_ as public_pages_home__page
 @target(javascript)
 import public/pages/standings as public_standings_wire
 @target(javascript)
-import public/pages/teams/slug_ as public_team_detail_wire
+import public/pages/teams/slug_ as public_teams_slug_wire
 @target(javascript)
 import rally/runtime/load as runtime_load
 
@@ -75,11 +75,10 @@ pub type AdminLoadRoute {
 @target(javascript)
 pub type PublicLoadRoute {
   PublicNoLoad
-  PublicGameDetailLoad(
-    message: public_game_detail_wire.ServerMsg,
-    to_message: fn(
-      Result(public_game_detail_wire.LoadResult, List(ApiLoadError)),
-    ) -> public_pages.Message,
+  PublicGamesIdLoad(
+    message: public_games_id_wire.ServerMsg,
+    to_message: fn(Result(public_games_id_wire.LoadResult, List(ApiLoadError))) ->
+      public_pages.Message,
   )
   PublicGamesLoad(
     message: public_games_wire.ServerMsg,
@@ -91,10 +90,10 @@ pub type PublicLoadRoute {
     to_message: fn(Result(public_standings_wire.LoadResult, List(ApiLoadError))) ->
       public_pages.Message,
   )
-  PublicTeamDetailLoad(
-    message: public_team_detail_wire.ServerMsg,
+  PublicTeamsSlugLoad(
+    message: public_teams_slug_wire.ServerMsg,
     to_message: fn(
-      Result(public_team_detail_wire.LoadResult, List(ApiLoadError)),
+      Result(public_teams_slug_wire.LoadResult, List(ApiLoadError)),
     ) -> public_pages.Message,
   )
 }
@@ -103,37 +102,31 @@ pub type PublicLoadRoute {
 pub fn admin_load_route(route route: admin_routes.Route) -> AdminLoadRoute {
   case route {
     admin_routes.AdminGames ->
-      AdminGamesLoad(
-        message: admin_games_wire.AdminGamesLoad,
-        to_message: fn(result) {
-          case result {
-            Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
-              admin_pages.AdminGamesMsg(admin_games_wire.Loaded(Ok(data)))
-            Error(errors) ->
-              admin_pages.AdminGamesMsg(
-                admin_games_wire.Loaded(
-                  Error(runtime_load.LoadError(message: api_load_error(errors))),
-                ),
-              )
-          }
-        },
-      )
+      AdminGamesLoad(message: admin_games_wire.Load, to_message: fn(result) {
+        case result {
+          Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
+            admin_pages.AdminGamesMsg(admin_games_wire.Loaded(Ok(data)))
+          Error(errors) ->
+            admin_pages.AdminGamesMsg(
+              admin_games_wire.Loaded(
+                Error(runtime_load.LoadError(message: api_load_error(errors))),
+              ),
+            )
+        }
+      })
     admin_routes.AdminHome ->
-      AdminGamesLoad(
-        message: admin_games_wire.AdminGamesLoad,
-        to_message: fn(result) {
-          case result {
-            Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
-              admin_pages.AdminHomeMsg(admin_games_wire.Loaded(Ok(data)))
-            Error(errors) ->
-              admin_pages.AdminHomeMsg(
-                admin_games_wire.Loaded(
-                  Error(runtime_load.LoadError(message: api_load_error(errors))),
-                ),
-              )
-          }
-        },
-      )
+      AdminGamesLoad(message: admin_games_wire.Load, to_message: fn(result) {
+        case result {
+          Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
+            admin_pages.AdminHomeMsg(admin_games_wire.Loaded(Ok(data)))
+          Error(errors) ->
+            admin_pages.AdminHomeMsg(
+              admin_games_wire.Loaded(
+                Error(runtime_load.LoadError(message: api_load_error(errors))),
+              ),
+            )
+        }
+      })
     _ -> AdminNoLoad
   }
 }
@@ -144,17 +137,15 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.GamesId(id:) ->
       case int.parse(id) {
         Ok(game_id) ->
-          PublicGameDetailLoad(
-            message: public_game_detail_wire.PublicGameDetailLoad(game_id:),
+          PublicGamesIdLoad(
+            message: public_games_id_wire.Load(game_id:),
             to_message: fn(result) {
               case result {
-                Ok(public_game_detail_wire.PublicGameDetailLoaded(data)) ->
-                  public_pages.GamesIdMsg(
-                    public_game_detail_wire.Loaded(Ok(data)),
-                  )
+                Ok(public_games_id_wire.PublicGameDetailLoaded(data)) ->
+                  public_pages.GamesIdMsg(public_games_id_wire.Loaded(Ok(data)))
                 Error(errors) ->
                   public_pages.GamesIdMsg(
-                    public_game_detail_wire.Loaded(
+                    public_games_id_wire.Loaded(
                       Error(
                         runtime_load.LoadError(message: api_load_error(errors)),
                       ),
@@ -166,40 +157,34 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
         Error(Nil) -> PublicNoLoad
       }
     public_routes.Games ->
-      PublicGamesLoad(
-        message: public_games_wire.PublicGamesLoad,
-        to_message: fn(result) {
-          case result {
-            Ok(public_games_wire.PublicGamesLoaded(data)) ->
-              public_pages.GamesMsg(public_games_wire.Loaded(Ok(data)))
-            Error(errors) ->
-              public_pages.GamesMsg(
-                public_games_wire.Loaded(
-                  Error(runtime_load.LoadError(message: api_load_error(errors))),
-                ),
-              )
-          }
-        },
-      )
+      PublicGamesLoad(message: public_games_wire.Load, to_message: fn(result) {
+        case result {
+          Ok(public_games_wire.PublicGamesLoaded(data)) ->
+            public_pages.GamesMsg(public_games_wire.Loaded(Ok(data)))
+          Error(errors) ->
+            public_pages.GamesMsg(
+              public_games_wire.Loaded(
+                Error(runtime_load.LoadError(message: api_load_error(errors))),
+              ),
+            )
+        }
+      })
     public_routes.Home ->
-      PublicGamesLoad(
-        message: public_games_wire.PublicGamesLoad,
-        to_message: fn(result) {
-          case result {
-            Ok(public_games_wire.PublicGamesLoaded(data)) ->
-              public_pages.HomeMsg(public_games_wire.Loaded(Ok(data)))
-            Error(errors) ->
-              public_pages.HomeMsg(
-                public_games_wire.Loaded(
-                  Error(runtime_load.LoadError(message: api_load_error(errors))),
-                ),
-              )
-          }
-        },
-      )
+      PublicGamesLoad(message: public_games_wire.Load, to_message: fn(result) {
+        case result {
+          Ok(public_games_wire.PublicGamesLoaded(data)) ->
+            public_pages.HomeMsg(public_games_wire.Loaded(Ok(data)))
+          Error(errors) ->
+            public_pages.HomeMsg(
+              public_games_wire.Loaded(
+                Error(runtime_load.LoadError(message: api_load_error(errors))),
+              ),
+            )
+        }
+      })
     public_routes.Standings ->
       PublicStandingsLoad(
-        message: public_standings_wire.PublicStandingsLoad,
+        message: public_standings_wire.Load,
         to_message: fn(result) {
           case result {
             Ok(public_standings_wire.PublicStandingsLoaded(data)) ->
@@ -214,17 +199,15 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
         },
       )
     public_routes.TeamsSlug(slug:) ->
-      PublicTeamDetailLoad(
-        message: public_team_detail_wire.PublicTeamDetailLoad(slug:),
+      PublicTeamsSlugLoad(
+        message: public_teams_slug_wire.Load(slug:),
         to_message: fn(result) {
           case result {
-            Ok(public_team_detail_wire.PublicTeamDetailLoaded(data)) ->
-              public_pages.TeamsSlugMsg(
-                public_team_detail_wire.Loaded(Ok(data)),
-              )
+            Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data)) ->
+              public_pages.TeamsSlugMsg(public_teams_slug_wire.Loaded(Ok(data)))
             Error(errors) ->
               public_pages.TeamsSlugMsg(
-                public_team_detail_wire.Loaded(
+                public_teams_slug_wire.Loaded(
                   Error(runtime_load.LoadError(message: api_load_error(errors))),
                 ),
               )
@@ -261,13 +244,13 @@ pub fn public_message_path(
           public_routes.GamesId(id: int.to_string(id)),
         ),
       )
-    public_pages.TeamsSlugMsg(public_team_detail_wire.NavigateGame(id:)) ->
+    public_pages.TeamsSlugMsg(public_teams_slug_wire.NavigateGame(id:)) ->
       Some(
         public_routes.route_to_path(
           public_routes.GamesId(id: int.to_string(id)),
         ),
       )
-    public_pages.GamesIdMsg(public_game_detail_wire.NavigateTeam(slug:)) ->
+    public_pages.GamesIdMsg(public_games_id_wire.NavigateTeam(slug:)) ->
       Some(public_routes.route_to_path(public_routes.TeamsSlug(slug: slug)))
     public_pages.GamesMsg(public_games_wire.NavigateTeam(slug:)) ->
       Some(public_routes.route_to_path(public_routes.TeamsSlug(slug: slug)))
@@ -275,7 +258,7 @@ pub fn public_message_path(
       Some(public_routes.route_to_path(public_routes.TeamsSlug(slug: slug)))
     public_pages.StandingsMsg(public_standings_wire.NavigateTeam(slug:)) ->
       Some(public_routes.route_to_path(public_routes.TeamsSlug(slug: slug)))
-    public_pages.TeamsSlugMsg(public_team_detail_wire.NavigateTeam(slug:)) ->
+    public_pages.TeamsSlugMsg(public_teams_slug_wire.NavigateTeam(slug:)) ->
       Some(public_routes.route_to_path(public_routes.TeamsSlug(slug: slug)))
     _ -> None
   }
@@ -327,7 +310,7 @@ pub fn public_page_broadcast_subscriptions(
 ) -> List(push_payload.Topic) {
   case page {
     public_pages.GamesIdPage(route_params:, model:) ->
-      public_game_detail_wire.broadcast_subscriptions(route_params, model)
+      public_games_id_wire.broadcast_subscriptions(route_params, model)
     public_pages.GamesPage(model) ->
       public_games_wire.broadcast_subscriptions(model)
     public_pages.HomePage(model) ->
@@ -335,7 +318,7 @@ pub fn public_page_broadcast_subscriptions(
     public_pages.StandingsPage(model) ->
       public_standings_wire.broadcast_subscriptions(model)
     public_pages.TeamsSlugPage(route_params:, model:) ->
-      public_team_detail_wire.broadcast_subscriptions(route_params, model)
+      public_teams_slug_wire.broadcast_subscriptions(route_params, model)
     _ -> []
   }
 }
@@ -349,7 +332,7 @@ pub fn public_apply_broadcast(
   case page {
     public_pages.GamesIdPage(route_params:, model:) -> {
       let #(model, page_effect) =
-        public_game_detail_wire.apply_broadcast(model, message)
+        public_games_id_wire.apply_broadcast(model, message)
       #(
         public_pages.GamesIdPage(route_params:, model: model),
         effect.map(page_effect, public_pages.GamesIdMsg),
@@ -381,7 +364,7 @@ pub fn public_apply_broadcast(
     }
     public_pages.TeamsSlugPage(route_params:, model:) -> {
       let #(model, page_effect) =
-        public_team_detail_wire.apply_broadcast(model, message)
+        public_teams_slug_wire.apply_broadcast(model, message)
       #(
         public_pages.TeamsSlugPage(route_params:, model: model),
         effect.map(page_effect, public_pages.TeamsSlugMsg),
@@ -530,12 +513,12 @@ pub fn public_initial_page(
 
   case public_load_route(route) {
     PublicNoLoad -> #(page, page_effect)
-    PublicGameDetailLoad(message: _, to_message:) -> {
+    PublicGamesIdLoad(message: _, to_message:) -> {
       initial_loaded_page(
         page: page,
         page_effect: page_effect,
         page_shared_state: page_shared_state,
-        hydration: hydration.public_game_detail_load_result(),
+        hydration: hydration.public_games_id_load_result(),
         to_message: to_message,
         load_client: fn() {
           public_request_effect(route, public_load_route(route))
@@ -569,12 +552,12 @@ pub fn public_initial_page(
         update_page: update_page,
       )
     }
-    PublicTeamDetailLoad(message: _, to_message:) -> {
+    PublicTeamsSlugLoad(message: _, to_message:) -> {
       initial_loaded_page(
         page: page,
         page_effect: page_effect,
         page_shared_state: page_shared_state,
-        hydration: hydration.public_team_detail_load_result(),
+        hydration: hydration.public_teams_slug_load_result(),
         to_message: to_message,
         load_client: fn() {
           public_request_effect(route, public_load_route(route))
@@ -611,10 +594,10 @@ fn public_request_effect(
 ) -> Effect(public_pages.Message) {
   case selected {
     PublicNoLoad -> effect.none()
-    PublicGameDetailLoad(message:, to_message:) ->
+    PublicGamesIdLoad(message:, to_message:) ->
       case route {
         public_routes.GamesId(id: _) ->
-          client_transport.send_public_game_detail_load(
+          client_transport.send_public_games_id_load(
             message:,
             on_result: to_message,
           )
@@ -627,10 +610,10 @@ fn public_request_effect(
         message:,
         on_result: to_message,
       )
-    PublicTeamDetailLoad(message:, to_message:) ->
+    PublicTeamsSlugLoad(message:, to_message:) ->
       case route {
         public_routes.TeamsSlug(slug: _) ->
-          client_transport.send_public_team_detail_load(
+          client_transport.send_public_teams_slug_load(
             message:,
             on_result: to_message,
           )
