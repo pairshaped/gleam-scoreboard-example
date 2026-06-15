@@ -255,7 +255,3 @@ src/public/pages/items/id_/sql/get_item.sql
 Workflow modules follow the same rule: the workflow owns its SQL locally, and generated SQL still goes to `src/generated/sql`.
 
 Server code imports these modules from Erlang-only declarations. JavaScript builds must not keep code paths that import SQL modules.
-
-## Stop Conditions
-
-The chase should stop and revisit the design if target annotations cannot escape generated-client-package assumptions, page-local decoding still needs global type identity hashes, boundary checking requires brittle whole-program magic, JS or TS grows beyond tiny browser API FFI shims, generated client code starts to look like an app, Rally cannot produce humane boundary diagnostics, or authored SQL colocation makes Marmot output unstable or hard to import.
