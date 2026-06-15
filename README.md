@@ -9,9 +9,9 @@ gleam build --target javascript
 gleam build --target erlang
 ```
 
-Target-specific behavior is marked at the declaration or import boundary. Today that means Gleam's `@target(javascript)` and `@target(erlang)` syntax. The architecture depends on target-scoped declarations, not on that exact spelling.
+Target-specific behavior is marked at the declaration or import boundary. Today that means Gleam's `@target(javascript)` and `@target(erlang)` syntax.
 
-Rally should not generate a full client app from server-shaped source. Rally-generated code is limited to thin route, wire, hydration, SSR, boot, transport, server dispatch, build metadata, and Libero codec composition glue.
+Generated code covers route, wire, hydration, SSR, boot, transport, server dispatch, build metadata, and Libero codec composition glue.
 
 ## Shape
 
@@ -24,8 +24,7 @@ Rally should not generate a full client app from server-shaped source. Rally-gen
 
 Authored SQL lives beside the page or workflow that owns it, in a local `sql/` directory. Generated SQL stays under `src/generated/sql/**`.
 
-Generated source is checked in so the example can be read, built, and tested
-without running every generator first.
+Generated source is checked in so the example can be read, built, and tested without running every generator first.
 
 ## Page Contract
 
@@ -36,8 +35,6 @@ Page data shapes belong to the page that renders and updates them. Shared types 
 Wire-crossing types may reference page-local types, approved root wire types under `src/wire/**`, `src/broadcasts.gleam`, primitives, and containers. Helper, service, query, business, formatting, and display types can be used as behavior, but their owned shapes cannot cross the wire.
 
 Client-side application behavior is authored in Gleam. JS or TS is reserved for tiny FFI modules around browser APIs.
-
-Generated output and rewritten source should preserve the Rally/Gleam house style: stable section layout for large modules and grouped, sorted imports.
 
 ## Current Commands
 
