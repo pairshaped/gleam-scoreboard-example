@@ -36,6 +36,36 @@ import generated/sql/admin/pages/games_sql
 @target(javascript)
 import generated/rally/server
 
+pub type GameStatus {
+  Scheduled
+  Live(period: String)
+  Final
+}
+
+pub type GameSummary {
+  GameSummary(
+    id: Int,
+    home_code: String,
+    away_code: String,
+    home_score: Int,
+    away_score: Int,
+    status: GameStatus,
+  )
+}
+
+pub type GameUpdate {
+  GameUpdate(
+    id: Int,
+    home_score: Int,
+    away_score: Int,
+    status: GameStatus,
+  )
+}
+
+pub type SaveError {
+  SaveError(message: String)
+}
+
 pub type Model {
   Model(games: List(GameSummary), saving: Bool)
 }
@@ -142,7 +172,7 @@ The section comments are for readers. Rally checks the page contract by function
 
 Pages that load server data define a page-local `ServerMsg` load variant, a `LoadResult`, and Erlang-only `load`. Pages that save server data define save variants on `ServerMsg`, browser update branches that call a generated page save effect, Erlang-only `handle_save`, and optional Erlang-only `after_save` when a successful save should send a typed broadcast.
 
-`ServerMsg` constructors are page-local Gleam names. Prefer names such as `Load`, `UpdateScore`, and `MarkFinal`; add more context only when there is a real same-module constructor collision. Rally gives generated protocol helpers route-scoped names such as `encode_admin_games_request` and `save_admin_games`.
+Page-local types and constructors should use page-local names. Prefer `GameSummary`, `GameUpdate`, `Scheduled`, `Live`, `Final`, `Load`, `UpdateScore`, and `MarkFinal` over names that repeat the route or mount. Add more context only when there is a real same-module constructor collision. Rally gives generated protocol helpers route-scoped names such as `encode_admin_games_request` and `save_admin_games`.
 
 Pages that receive broadcasts define `broadcast_subscriptions` and `apply_broadcast`. Generated browser glue uses subscriptions to sync websocket topics for the active page, then routes decoded broadcast events back through the page's `apply_broadcast` hook.
 
