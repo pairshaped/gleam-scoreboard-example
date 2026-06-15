@@ -51,17 +51,20 @@ pub fn load(
 ) -> #(Page, Effect(Message)) {
   case route {
     routes.AdminHome -> {
-      let page_model = admin_home_page.initial_model(page_shared_state, query_params)
+      let page_model =
+        admin_home_page.initial_model(page_shared_state, query_params)
       let page_effect = effect.none()
       #(AdminHomePage(page_model), effect.map(page_effect, AdminHomeMsg))
     }
     routes.AdminGames -> {
-      let page_model = admin_games_page.initial_model(page_shared_state, query_params)
+      let page_model =
+        admin_games_page.initial_model(page_shared_state, query_params)
       let page_effect = effect.none()
       #(AdminGamesPage(page_model), effect.map(page_effect, AdminGamesMsg))
     }
     routes.NotFound -> {
-      let page_model = not_found_page.initial_model(page_shared_state, query_params)
+      let page_model =
+        not_found_page.initial_model(page_shared_state, query_params)
       let page_effect = effect.none()
       #(NotFoundPage(page_model), effect.map(page_effect, NotFoundMsg))
     }
@@ -80,10 +83,16 @@ pub fn initial_page(
 ) -> Page {
   case route {
     routes.AdminHome -> {
-      AdminHomePage(admin_home_page.initial_model(page_shared_state, query_params))
+      AdminHomePage(admin_home_page.initial_model(
+        page_shared_state,
+        query_params,
+      ))
     }
     routes.AdminGames -> {
-      AdminGamesPage(admin_games_page.initial_model(page_shared_state, query_params))
+      AdminGamesPage(admin_games_page.initial_model(
+        page_shared_state,
+        query_params,
+      ))
     }
     routes.NotFound -> {
       NotFoundPage(not_found_page.initial_model(page_shared_state, query_params))

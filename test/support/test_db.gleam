@@ -21,7 +21,7 @@ pub fn setup(name name: String) -> Result(Connection, SetupError) {
     simplifile.create_directory_all(root)
     |> result.map_error(fn(_) { CreateDirectoryFailed }),
   )
-  let path = root <> "/scoreboard-unified-" <> name <> ".db"
+  let path = root <> "/scoreboard-" <> name <> ".db"
 
   case marmot.reset(path) {
     Ok(_) ->

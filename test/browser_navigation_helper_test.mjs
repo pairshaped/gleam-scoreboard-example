@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 
-import * as publicPages from "../build/dev/javascript/scoreboard_unified/generated/proute/public/pages.mjs";
-import * as browserApp from "../build/dev/javascript/scoreboard_unified/generated/rally/browser_app.mjs";
-import * as gamesPage from "../build/dev/javascript/scoreboard_unified/public/pages/games.mjs";
-import * as gameDetailPage from "../build/dev/javascript/scoreboard_unified/public/pages/games/id_.mjs";
-import * as standingsPage from "../build/dev/javascript/scoreboard_unified/public/pages/standings.mjs";
-import * as teamPage from "../build/dev/javascript/scoreboard_unified/public/pages/teams/slug_.mjs";
+import * as publicPages from "../build/dev/javascript/scoreboard/generated/proute/public/pages.mjs";
+import * as browserApp from "../build/dev/javascript/scoreboard/generated/rally/browser_app.mjs";
+import * as gamesPage from "../build/dev/javascript/scoreboard/public/pages/games.mjs";
+import * as gameDetailPage from "../build/dev/javascript/scoreboard/public/pages/games/id_.mjs";
+import * as standingsPage from "../build/dev/javascript/scoreboard/public/pages/standings.mjs";
+import * as teamPage from "../build/dev/javascript/scoreboard/public/pages/teams/slug_.mjs";
 import { Some } from "../build/dev/javascript/gleam_stdlib/gleam/option.mjs";
 
 assertPath(

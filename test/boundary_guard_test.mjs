@@ -359,7 +359,7 @@ assertNoPatterns("src/app_auth_http.gleam", [
   },
 ]);
 
-assertNoPatterns("src/scoreboard_unified.gleam", [
+assertNoPatterns("src/scoreboard.gleam", [
   {
     pattern: /import\s+app_config\b|db_path|sqlight\.open|auth_session_from_env|SCOREBOARD_SECRET_KEY_BASE|SECRET_KEY_BASE|DATABASE_PATH|PORT/,
     reason: "server startup config, DB opening, and auth session lookup belong in Rally runtime bootstrap",

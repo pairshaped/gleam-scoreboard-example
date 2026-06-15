@@ -55,27 +55,35 @@ pub type TeamDetail {
   )
 }
 
-/// Server request to load one team by slug.
+/// Rally contract: generated Rally code uses this as the page's server request
+/// envelope. `Load` carries the parsed route slug into this page's `load`.
 pub type ServerMsg {
   Load(slug: String)
 }
 
+/// Rally contract: `load` returns plain page data, then generated Rally code
+/// wraps that data in `TeamLoaded` so Libero can encode a typed load response.
+/// The browser unwraps this before dispatching `Message.Loaded`.
 pub type LoadResult {
   TeamLoaded(team: TeamDetail)
 }
 
+/// Proute contract: generated Proute code stores this page state inside its
+/// route-level page wrapper.
 pub type Model {
   Model(team: Option(TeamDetail))
 }
 
+/// Proute contract: generated Proute code wraps these messages so the app can
+/// route browser events and load results back to this page's update function.
 pub type Message {
   Loaded(Result(TeamDetail, runtime_load.LoadError))
   NavigateTeam(slug: String)
   NavigateGame(id: Int)
 }
 
-/// generated/proute/public/pages module calls this to construct an empty page before
-/// Rally applies hydrated or freshly loaded data.
+/// Proute contract: generated Proute code calls this to construct an empty page.
+/// Rally later applies hydrated data or the result of `load`.
 pub fn initial_model(
   _page_shared_state: PublicPageSharedState,
   _route_params: page_input.TeamsSlugRouteParams,
@@ -86,8 +94,8 @@ pub fn initial_model(
 
 // UPDATE
 
-/// generated/proute/public/pages module calls this when a TeamsSlugMsg is active on the
-/// current page.
+/// Proute contract: generated Proute code calls this when a `TeamsSlugMsg` is
+/// active. This is ordinary Lustre update logic, but the function name and signature matter.
 pub fn update(
   model model: Model,
   msg msg: Message,
@@ -101,7 +109,8 @@ pub fn update(
 
 // BROADCAST
 
-/// Required because generated/rally/browser_app module calls this to sync active broadcast topics.
+/// Rally contract: generated browser code calls this whenever the active page
+/// changes so the websocket joins the right broadcast topics.
 pub fn broadcast_subscriptions(
   route_params: page_input.TeamsSlugRouteParams,
   _model: Model,
@@ -109,8 +118,8 @@ pub fn broadcast_subscriptions(
   [broadcasts.team_topic(route_params.slug)]
 }
 
-/// Required because generated/rally/browser_app module calls this after a game update frame
-/// is decoded for this page's route team topic.
+/// Rally contract: generated browser code calls this after a broadcast frame has
+/// been decoded for this page's route team topic.
 pub fn apply_broadcast(
   model model: Model,
   message message: broadcasts.Event,
@@ -136,6 +145,7 @@ pub fn game_updated(
 
 // VIEW
 
+/// Proute contract: generated Proute code calls this to render the active page.
 pub fn view(model model: Model) -> Element(Message) {
   html.main([], [
     view_team_detail(model.team, fn(slug) { NavigateTeam(slug:) }, fn(id) {
@@ -380,8 +390,8 @@ fn status_badge(status: GameStatus) -> Element(msg) {
 // SERVER
 
 @target(erlang)
-/// Required because generated/rally/server_ssr and generated/rally/server_ws
-/// modules call this, then wrap page data in the Rally/Libero load result shape.
+/// Rally contract: generated SSR and websocket code call this on the Erlang
+/// target. The returned data is wrapped in `LoadResult` for the wire.
 pub fn load(
   db: sqlight.Connection,
   slug: String,

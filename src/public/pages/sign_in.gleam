@@ -6,14 +6,19 @@ import lustre/element.{type Element}
 import lustre/element/html
 import public/page_shared_state.{type PublicPageSharedState}
 
+/// Proute contract: generated Proute code stores this page state inside its
+/// route-level page wrapper.
 pub type Model {
   Model(return_to: String, invalid: Bool, sent: Bool)
 }
 
+/// Proute contract: generated Proute code wraps these messages before calling
+/// this page's update function. This form page has no client events yet.
 pub type Message {
   NoOp
 }
 
+/// Proute contract: generated Proute code calls this to construct the sign-in page.
 /// It keeps the return target and error flag in the model so SSR and browser
 /// hydration render the same form without needing any init effects.
 pub fn initial_model(
@@ -28,7 +33,7 @@ pub fn initial_model(
   )
 }
 
-/// generated/proute/public/pages module calls this when SignInMsg is active.
+/// Proute contract: generated Proute code calls this when `SignInMsg` is active.
 pub fn update(
   model model: Model,
   msg _msg: Message,
@@ -36,6 +41,7 @@ pub fn update(
   #(model, effect.none())
 }
 
+/// Proute contract: generated Proute code calls this to render the active page.
 pub fn view(model model: Model) -> Element(Message) {
   html.section([attribute.class("panel")], [
     html.h1([], [html.text("Sign in")]),

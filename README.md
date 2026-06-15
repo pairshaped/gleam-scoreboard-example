@@ -32,6 +32,10 @@ Pages define their local `Model`, browser `Message`, pure `initial_model`, share
 
 `ServerMsg` constructors are local to the page module. Use short names like `Load`, `UpdateScore`, and `MarkFinal` unless they collide with another constructor in the same module. Rally namespaces the generated protocol helpers from the page route, so the public games page still gets generated helpers such as `encode_public_games_request`.
 
+`LoadResult` constructors follow the same rule. Use the shortest clear name that works inside the module. For example, the games page uses `GamesLoaded` because it already has a browser `Message.Loaded` constructor in the same module, and Gleam constructors share a module namespace.
+
+When authored code is called by generated Proute or Rally code, the example marks that boundary with a short comment. Those comments are intentionally instructional: they explain what the generated code expects and why the name, type, or signature matters.
+
 Most pages omit `init`; use it only for page-specific browser startup effects such as browser APIs, local storage, focus, measurement, or one-off DOM effects. Generated Rally glue handles normal page data loading.
 
 Page data shapes belong to the page that renders and updates them. Shared types are for app concepts that do not belong to one page.

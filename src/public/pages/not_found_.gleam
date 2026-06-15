@@ -5,14 +5,19 @@ import lustre/element.{type Element}
 import lustre/element/html
 import public/page_shared_state.{type PublicPageSharedState}
 
+/// Proute contract: generated Proute code stores this page state inside its
+/// route-level page wrapper.
 pub type Model {
   Model(title: String)
 }
 
+/// Proute contract: generated Proute code wraps these messages before calling
+/// this page's update function. The not-found page has no client events.
 pub type Message {
   NoOp
 }
 
+/// Proute contract: generated Proute code calls this to construct the not-found page.
 pub fn initial_model(
   _page_shared_state: PublicPageSharedState,
   _query_params: page_input.QueryParams,
@@ -20,7 +25,7 @@ pub fn initial_model(
   Model(title: "Not found")
 }
 
-/// generated/proute/public/pages module calls this when NotFoundMsg is active.
+/// Proute contract: generated Proute code calls this when `NotFoundMsg` is active.
 pub fn update(
   model model: Model,
   msg _msg: Message,
@@ -28,6 +33,7 @@ pub fn update(
   #(model, effect.none())
 }
 
+/// Proute contract: generated Proute code calls this to render the active page.
 pub fn view(model model: Model) -> Element(Message) {
   html.main([], [
     html.section([attribute.class("panel")], [

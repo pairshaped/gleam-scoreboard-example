@@ -4,9 +4,9 @@ import { createRequire } from "node:module";
 import { execFileSync, spawn } from "node:child_process";
 import path from "node:path";
 
-import { GameUpdate } from "../build/dev/javascript/scoreboard_unified/admin/pages/games.mjs";
-import { decode_result_envelope } from "../build/dev/javascript/scoreboard_unified/generated/rally/client_protocol.mjs";
-import { BitArray, Ok } from "../build/dev/javascript/scoreboard_unified/gleam.mjs";
+import { GameUpdate } from "../build/dev/javascript/scoreboard/admin/pages/games.mjs";
+import { decode_result_envelope } from "../build/dev/javascript/scoreboard/generated/rally/client_protocol.mjs";
+import { BitArray, Ok } from "../build/dev/javascript/scoreboard/gleam.mjs";
 
 const baseUrl = process.env.SCOREBOARD_BASE_URL ?? "http://localhost:8081";
 

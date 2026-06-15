@@ -38,9 +38,9 @@ pub type GameSummary {
   )
 }
 
-/// Rally save response payload and page-local broadcast projection.
-/// generated/rally encodes this as the admin save result, and browser push
-/// handling converts BroadcastGameUpdated frames into this shape.
+/// Rally contract: handle_save returns this as the page's save result.
+/// Generated websocket code encodes it for the requester, and broadcast handling
+/// can also project BroadcastGameUpdated frames into this page-local shape.
 pub type GameUpdate {
   GameUpdate(
     id: Int,
@@ -52,28 +52,37 @@ pub type GameUpdate {
   )
 }
 
+/// Rally contract: `load` returns plain page data, then generated Rally code
+/// wraps that data in `GamesLoaded` so Libero can encode a typed load response.
+/// The browser unwraps this before dispatching `Message.Loaded`.
 pub type LoadResult {
   GamesLoaded(games: List(GameSummary))
 }
 
-/// Page-local save error carried by Message.Saved and returned by handle_save.
-/// app_ws translates this into generated Rally websocket SaveError values for
-/// browser responses.
+/// Rally contract: handle_save returns this when a page save fails.
+/// Generated websocket code converts it into the transport save error shape.
 pub type SaveError {
   SaveError(message: String)
 }
 
-/// Server requests for the admin games page.
+/// Rally contract: generated Rally code uses ServerMsg as the page's server
+/// request envelope. Load triggers load; save variants are decoded and passed
+/// to handle_save.
 pub type ServerMsg {
   Load
   UpdateScore(game_id: Int, home_score: Int, away_score: Int, period: String)
   MarkFinal(game_id: Int)
 }
 
+/// Proute contract: generated Proute code stores this page state inside its
+/// route-level page wrapper.
 pub type Model {
   Model(games: List(GameSummary))
 }
 
+/// Proute contract: generated Proute code wraps these messages so the app can
+/// route browser events, load results, and save results back to this page's
+/// update function.
 pub type Message {
   AdjustAway(id: Int, home_score: Int, away_score: Int, delta: Int)
   AdjustHome(id: Int, home_score: Int, away_score: Int, delta: Int)
@@ -82,8 +91,8 @@ pub type Message {
   Saved(Result(GameUpdate, SaveError))
 }
 
-/// generated/proute/admin/pages module calls this to construct an empty page before
-/// Rally applies hydrated or freshly loaded data.
+/// Proute contract: generated Proute code calls this to construct an empty page.
+/// Rally later applies hydrated data or the result of `load`.
 pub fn initial_model(
   _page_shared_state: AdminPageSharedState,
   _query_params: page_input.QueryParams,
@@ -93,8 +102,8 @@ pub fn initial_model(
 
 // UPDATE
 
-/// generated/proute/admin/pages module calls this when an AdminHomeMsg or AdminGamesMsg
-/// is active on the current page.
+/// Proute contract: generated Proute code calls this when an `AdminGamesMsg` is
+/// active. This is ordinary Lustre update logic, but the function name and signature matter.
 pub fn update(
   _page_shared_state: AdminPageSharedState,
   model model: Model,
@@ -117,13 +126,14 @@ pub fn update(
 
 // BROADCAST
 
-/// Required because generated/rally/browser_app module calls this to sync active broadcast topics.
+/// Rally contract: generated browser code calls this whenever the active page
+/// changes so the websocket joins the right broadcast topics.
 pub fn broadcast_subscriptions(_model: Model) -> List(broadcasts.Topic) {
   [broadcasts.admin_games_topic()]
 }
 
-/// Required because generated/rally/browser_app module calls this after a game update frame
-/// is decoded for the admin games topic.
+/// Rally contract: generated browser code calls this after a broadcast frame has
+/// been decoded for the admin games topic.
 pub fn apply_broadcast(
   model model: Model,
   message message: broadcasts.Event,
@@ -144,6 +154,7 @@ pub fn game_updated(
 
 // VIEW
 
+/// Proute contract: generated Proute code calls this to render the active page.
 pub fn view(model model: Model) -> Element(Message) {
   view_games(
     games: model.games,
@@ -366,8 +377,8 @@ fn map_save_result(
 // SERVER
 
 @target(erlang)
-/// Required because generated/rally/server_ssr and generated/rally/server_ws
-/// modules call this, then wrap page data in the Rally/Libero load result shape.
+/// Rally contract: generated SSR and websocket code call this on the Erlang
+/// target. The returned data is wrapped in `LoadResult` for the wire.
 pub fn load(
   db: sqlight.Connection,
 ) -> Result(List(GameSummary), runtime_load.LoadError) {
@@ -379,8 +390,8 @@ pub fn load(
 }
 
 @target(erlang)
-/// Required because generated/rally/server_ws module calls this after decoding
-/// an admin save request and verifying that the connection is authorized.
+/// Rally contract: generated websocket code calls this after decoding a ServerMsg
+/// save variant and verifying that the connection is authorized.
 pub fn handle_save(
   db: sqlight.Connection,
   msg: ServerMsg,
@@ -414,7 +425,8 @@ pub fn handle_save(
 }
 
 @target(erlang)
-/// Builds the targeted broadcast emitted after a successful admin save.
+/// Rally contract: generated websocket code calls this after a successful
+/// handle_save result when a page save should emit a typed broadcast.
 pub fn after_save(
   db: sqlight.Connection,
   game: GameUpdate,

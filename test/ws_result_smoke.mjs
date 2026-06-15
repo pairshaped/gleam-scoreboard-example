@@ -4,9 +4,9 @@ import { spawn } from "node:child_process";
 import {
   decode_result_envelope,
   encode_public_games_request,
-} from "../build/dev/javascript/scoreboard_unified/generated/rally/client_protocol.mjs";
-import { Load, GamesLoaded } from "../build/dev/javascript/scoreboard_unified/public/pages/games.mjs";
-import { BitArray, Ok } from "../build/dev/javascript/scoreboard_unified/gleam.mjs";
+} from "../build/dev/javascript/scoreboard/generated/rally/client_protocol.mjs";
+import { Load, GamesLoaded } from "../build/dev/javascript/scoreboard/public/pages/games.mjs";
+import { BitArray, Ok } from "../build/dev/javascript/scoreboard/gleam.mjs";
 
 const baseUrl = process.env.SCOREBOARD_BASE_URL ?? "http://localhost:8081";
 const requestId = 77;

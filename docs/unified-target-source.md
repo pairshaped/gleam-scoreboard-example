@@ -66,16 +66,24 @@ pub type SaveError {
   SaveError(message: String)
 }
 
+/// Proute contract: generated Proute code stores this page state inside its
+/// route-level page wrapper.
 pub type Model {
   Model(games: List(GameSummary), saving: Bool)
 }
 
+/// Proute contract: generated Proute code wraps these messages so the app can
+/// route browser events, load results, and save results back to this page's
+/// update function.
 pub type Message {
   AdjustHome(id: Int, home_score: Int, away_score: Int, delta: Int)
   Loaded(Result(List(GameSummary), runtime_load.LoadError))
   Saved(Result(GameUpdate, SaveError))
 }
 
+/// Rally contract: generated Rally code uses ServerMsg as the page's server
+/// request envelope. Load triggers load; save variants are decoded and passed
+/// to handle_save.
 pub type ServerMsg {
   Load
   UpdateScore(
@@ -87,18 +95,22 @@ pub type ServerMsg {
   MarkFinal(game_id: Int)
 }
 
+/// Rally contract: `load` returns plain page data, then generated Rally code
+/// wraps that data in `GamesLoaded` so Libero can encode a typed load response.
+/// The browser unwraps this before dispatching `Message.Loaded`.
 pub type LoadResult {
   GamesLoaded(games: List(GameSummary))
 }
 
+/// Proute contract: generated Proute code calls this to render the active page.
 pub fn view(model: Model) -> Element(Message) {
   todo
 }
 
 // INIT
 
-/// generated/proute/admin/pages module calls this to construct an empty page
-/// before Rally applies hydrated or freshly loaded data.
+/// Proute contract: generated Proute code calls this to construct an empty page.
+/// Rally later applies hydrated data or the result of `load`.
 pub fn initial_model(
   _page_shared_state: AdminPageSharedState,
   _query_params: page_input.QueryParams,
@@ -106,7 +118,7 @@ pub fn initial_model(
   Model(games: [], saving: False)
 }
 
-/// generated/proute/admin/pages module calls this when the route first builds
+/// Proute contract: generated Proute code calls this when the route first builds
 /// the page.
 /// Most Rally pages omit this. Use it only for page-specific client startup
 /// effects such as browser APIs, local storage, focus, measurement, or one-off
@@ -121,6 +133,9 @@ pub fn init(
 // CLIENT
 
 @target(javascript)
+/// Proute contract: generated Proute code calls this when an `AdminGamesMsg` is
+/// active. This is ordinary Lustre update logic, but the function name and
+/// signature matter.
 pub fn update(
   _page_shared_state: AdminPageSharedState,
   model model: Model,
@@ -146,16 +161,22 @@ pub fn update(
 // SERVER
 
 @target(erlang)
+/// Rally contract: generated SSR and websocket code call this on the Erlang
+/// target to fetch page data.
 pub fn load(ctx) -> Result(List(GameSummary), runtime_load.LoadError) {
   todo
 }
 
 @target(erlang)
+/// Rally contract: generated websocket code calls this after decoding a
+/// ServerMsg save variant for this page.
 pub fn handle_save(ctx, msg: ServerMsg) -> Result(GameUpdate, SaveError) {
   todo
 }
 
 @target(erlang)
+/// Rally contract: generated websocket code calls this after a successful
+/// handle_save when the saved state should be broadcast.
 pub fn after_save(
   ctx,
   game: GameUpdate,
@@ -173,6 +194,16 @@ The section comments are for readers. Rally checks the page contract by function
 Pages that load server data define a page-local `ServerMsg` load variant, a `LoadResult`, and Erlang-only `load`. Pages that save server data define save variants on `ServerMsg`, browser update branches that call a generated page save effect, Erlang-only `handle_save`, and optional Erlang-only `after_save` when a successful save should send a typed broadcast.
 
 Page-local types and constructors should use page-local names. Prefer `GameSummary`, `GameUpdate`, `Scheduled`, `Live`, `Final`, `Load`, `UpdateScore`, and `MarkFinal` over names that repeat the route or mount. Add more context only when there is a real same-module constructor collision. Rally gives generated protocol helpers route-scoped names such as `encode_admin_games_request` and `save_admin_games`.
+
+`LoadResult` constructor names are page-local too. Use the shortest clear name
+that does not collide inside the module. A page may use `GamesLoaded` instead of
+`Loaded` because the same module already has a browser `Message.Loaded`
+constructor, and Gleam constructors share one module namespace.
+
+When authored code is required by generated Proute or Rally code, mark the
+boundary with a short doc comment. The goal is to teach the contract at the
+point of use: what generated code calls, what shape it expects, and why the name
+or signature matters.
 
 Pages that receive broadcasts define `broadcast_subscriptions` and `apply_broadcast`. Generated browser glue uses subscriptions to sync websocket topics for the active page, then routes decoded broadcast events back through the page's `apply_broadcast` hook.
 

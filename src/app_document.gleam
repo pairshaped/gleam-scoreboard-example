@@ -93,7 +93,7 @@ fn html(
 <body>
   <div id=\"app\"" <> app_attrs <> ">" <> ssr_app.html <> "</div>
   <script type=\"module\">
-    import { main } from '/_build/scoreboard_unified/" <> entrypoint <> "';
+    import { main } from '/_build/scoreboard/" <> entrypoint <> "';
     main();
   </script>
 </body>

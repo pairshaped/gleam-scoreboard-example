@@ -7,12 +7,12 @@ import { Ok, Error as ResultError, Empty, NonEmpty } from "../../../gleam_stdlib
 import { Some, None } from "../../../gleam_stdlib/gleam/option.mjs";
 import { from_list as dictFromList } from "../../../gleam_stdlib/gleam/dict.mjs";
 import { registerAtomDecoder } from "../../../libero/libero/etf/wire_ffi.mjs";
-import * as _m_broadcasts from "../../../scoreboard_unified/broadcasts.mjs";
-import * as _m_admin_pages_games from "../../../scoreboard_unified/admin/pages/games.mjs";
-import * as _m_public_pages_games_id_ from "../../../scoreboard_unified/public/pages/games/id_.mjs";
-import * as _m_public_pages_games from "../../../scoreboard_unified/public/pages/games.mjs";
-import * as _m_public_pages_standings from "../../../scoreboard_unified/public/pages/standings.mjs";
-import * as _m_public_pages_teams_slug_ from "../../../scoreboard_unified/public/pages/teams/slug_.mjs";
+import * as _m_broadcasts from "../../../scoreboard/broadcasts.mjs";
+import * as _m_admin_pages_games from "../../../scoreboard/admin/pages/games.mjs";
+import * as _m_public_pages_games_id_ from "../../../scoreboard/public/pages/games/id_.mjs";
+import * as _m_public_pages_games from "../../../scoreboard/public/pages/games.mjs";
+import * as _m_public_pages_standings from "../../../scoreboard/public/pages/standings.mjs";
+import * as _m_public_pages_teams_slug_ from "../../../scoreboard/public/pages/teams/slug_.mjs";
 
 export function decode_broadcasts_event(term) {
   if (!Array.isArray(term) || term.length !== 2 || term[0] !== "10a502b9f6") throw new DecodeError("expected 10a502b9f6 (BroadcastGameUpdated @ broadcasts), got " + (Array.isArray(term) ? String(term[0]) : typeof term));

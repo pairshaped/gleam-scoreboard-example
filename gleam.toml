@@ -1,4 +1,4 @@
-name = "scoreboard_unified"
+name = "scoreboard"
 version = "0.1.0"
 
 [dependencies]
