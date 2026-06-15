@@ -44,7 +44,7 @@ pub type ServerMsg {
 }
 
 pub type LoadResult {
-  PublicGameDetailLoaded(game: GameDetail)
+  GameLoaded(game: GameDetail)
 }
 
 pub type Model {

@@ -50,10 +50,7 @@ pub fn mark_final_returns_save_ack_payload_and_game_update_test() {
   let broadcast = broadcasts.game_updated_broadcast(db, 1)
 
   case result, broadcast {
-    Ok(admin_games_page.AdminGamesUpdate(
-      status: admin_games_page.AdminGamesFinal,
-      ..,
-    )),
+    Ok(admin_games_page.GameUpdate(status: admin_games_page.Final, ..)),
       Ok(broadcasts.TargetedEvent(
         topics: [
           broadcasts.AllGames,
@@ -84,10 +81,7 @@ pub fn update_score_returns_save_ack_payload_and_game_update_test() {
   let broadcast = broadcasts.game_updated_broadcast(db, 1)
 
   case result, broadcast {
-    Ok(admin_games_page.AdminGamesUpdate(
-      status: admin_games_page.AdminGamesLive("Live"),
-      ..,
-    )),
+    Ok(admin_games_page.GameUpdate(status: admin_games_page.Live("Live"), ..)),
       Ok(broadcasts.TargetedEvent(
         topics: [
           broadcasts.AllGames,

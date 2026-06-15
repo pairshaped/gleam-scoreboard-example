@@ -102,7 +102,7 @@ pub fn admin_load_route(route route: admin_routes.Route) -> AdminLoadRoute {
     admin_routes.AdminGames ->
       AdminGamesLoad(to_message: fn(result) {
         case result {
-          Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
+          Ok(admin_games_wire.GamesLoaded(data)) ->
             admin_pages.AdminGamesMsg(admin_games_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             admin_pages.AdminGamesMsg(
@@ -121,7 +121,7 @@ pub fn admin_load_route(route route: admin_routes.Route) -> AdminLoadRoute {
     admin_routes.AdminHome ->
       AdminGamesLoad(to_message: fn(result) {
         case result {
-          Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
+          Ok(admin_games_wire.GamesLoaded(data)) ->
             admin_pages.AdminHomeMsg(admin_games_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             admin_pages.AdminHomeMsg(
@@ -147,7 +147,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.GamesId(id: _) ->
       PublicGamesIdLoad(to_message: fn(result) {
         case result {
-          Ok(public_games_id_wire.PublicGameDetailLoaded(data)) ->
+          Ok(public_games_id_wire.GameLoaded(data)) ->
             public_pages.GamesIdMsg(public_games_id_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.GamesIdMsg(
@@ -166,7 +166,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.Games ->
       PublicGamesLoad(to_message: fn(result) {
         case result {
-          Ok(public_games_wire.PublicGamesLoaded(data)) ->
+          Ok(public_games_wire.GamesLoaded(data)) ->
             public_pages.GamesMsg(public_games_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.GamesMsg(
@@ -185,7 +185,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.Home ->
       PublicGamesLoad(to_message: fn(result) {
         case result {
-          Ok(public_games_wire.PublicGamesLoaded(data)) ->
+          Ok(public_games_wire.GamesLoaded(data)) ->
             public_pages.HomeMsg(public_games_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.HomeMsg(
@@ -204,7 +204,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.Standings ->
       PublicStandingsLoad(to_message: fn(result) {
         case result {
-          Ok(public_standings_wire.PublicStandingsLoaded(data)) ->
+          Ok(public_standings_wire.StandingsLoaded(data)) ->
             public_pages.StandingsMsg(public_standings_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.StandingsMsg(
@@ -223,7 +223,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.TeamsSlug(slug: _) ->
       PublicTeamsSlugLoad(to_message: fn(result) {
         case result {
-          Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data)) ->
+          Ok(public_teams_slug_wire.TeamLoaded(data)) ->
             public_pages.TeamsSlugMsg(public_teams_slug_wire.Loaded(Ok(data)))
           Error([message, ..]) ->
             public_pages.TeamsSlugMsg(
@@ -308,7 +308,7 @@ pub fn admin_boot_page(
     AdminNoLoad -> #(page, [])
     AdminGamesLoad(to_message:) -> {
       let result = case admin_games_wire.load(load_context) {
-        Ok(data) -> Ok(admin_games_wire.AdminGamesLoadResult(data))
+        Ok(data) -> Ok(admin_games_wire.GamesLoaded(data))
         Error(runtime_load.LoadError(message: message)) -> Error([message])
       }
       boot_loaded_page(
@@ -341,8 +341,7 @@ pub fn public_boot_page(
           case int.parse(id) {
             Ok(game_id) ->
               case public_games_id_wire.load(load_context, game_id) {
-                Ok(data) ->
-                  Ok(public_games_id_wire.PublicGameDetailLoaded(data))
+                Ok(data) -> Ok(public_games_id_wire.GameLoaded(data))
                 Error(runtime_load.LoadError(message: message)) ->
                   Error([message])
               }
@@ -360,7 +359,7 @@ pub fn public_boot_page(
     }
     PublicGamesLoad(to_message:) -> {
       let result = case public_games_wire.load(load_context) {
-        Ok(data) -> Ok(public_games_wire.PublicGamesLoaded(data))
+        Ok(data) -> Ok(public_games_wire.GamesLoaded(data))
         Error(runtime_load.LoadError(message: message)) -> Error([message])
       }
       boot_loaded_page(
@@ -373,7 +372,7 @@ pub fn public_boot_page(
     }
     PublicStandingsLoad(to_message:) -> {
       let result = case public_standings_wire.load(load_context) {
-        Ok(data) -> Ok(public_standings_wire.PublicStandingsLoaded(data))
+        Ok(data) -> Ok(public_standings_wire.StandingsLoaded(data))
         Error(runtime_load.LoadError(message: message)) -> Error([message])
       }
       boot_loaded_page(
@@ -388,7 +387,7 @@ pub fn public_boot_page(
       let result = case route {
         public_routes.TeamsSlug(slug:) ->
           case public_teams_slug_wire.load(load_context, slug) {
-            Ok(data) -> Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data))
+            Ok(data) -> Ok(public_teams_slug_wire.TeamLoaded(data))
             Error(runtime_load.LoadError(message: message)) -> Error([message])
           }
         _ -> Error(["Unexpected route."])

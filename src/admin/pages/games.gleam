@@ -21,13 +21,13 @@ import generated/rally/server
 // TYPES
 
 pub type GameStatus {
-  AdminGamesScheduled
-  AdminGamesLive(period: String)
-  AdminGamesFinal
+  Scheduled
+  Live(period: String)
+  Final
 }
 
-pub type AdminGameSummary {
-  AdminGamesSummary(
+pub type GameSummary {
+  GameSummary(
     id: Int,
     home_code: String,
     away_code: String,
@@ -42,7 +42,7 @@ pub type AdminGameSummary {
 /// generated/rally encodes this as the admin save result, and browser push
 /// handling converts BroadcastGameUpdated frames into this shape.
 pub type GameUpdate {
-  AdminGamesUpdate(
+  GameUpdate(
     id: Int,
     home_code: String,
     away_code: String,
@@ -53,7 +53,7 @@ pub type GameUpdate {
 }
 
 pub type LoadResult {
-  AdminGamesLoadResult(games: List(AdminGameSummary))
+  GamesLoaded(games: List(GameSummary))
 }
 
 /// Page-local save error carried by Message.Saved and returned by handle_save.
@@ -71,13 +71,13 @@ pub type ServerMsg {
 }
 
 pub type Model {
-  Model(games: List(AdminGameSummary))
+  Model(games: List(GameSummary))
 }
 
 pub type Message {
   AdjustAway(id: Int, home_score: Int, away_score: Int, delta: Int)
   AdjustHome(id: Int, home_score: Int, away_score: Int, delta: Int)
-  Loaded(Result(List(AdminGameSummary), runtime_load.LoadError))
+  Loaded(Result(List(GameSummary), runtime_load.LoadError))
   MarkFinalClicked(id: Int)
   Saved(Result(GameUpdate, SaveError))
 }
@@ -160,7 +160,7 @@ pub fn view(model model: Model) -> Element(Message) {
 // HELPERS
 
 fn view_games(
-  games games: List(AdminGameSummary),
+  games games: List(GameSummary),
   on_adjust_away on_adjust_away: fn(Int, Int, Int, Int) -> msg,
   on_adjust_home on_adjust_home: fn(Int, Int, Int, Int) -> msg,
   on_mark_final on_mark_final: fn(Int) -> msg,
@@ -178,7 +178,7 @@ fn view_games(
 }
 
 fn view_game_card(
-  game: AdminGameSummary,
+  game: GameSummary,
   on_adjust_away: fn(Int, Int, Int, Int) -> msg,
   on_adjust_home: fn(Int, Int, Int, Int) -> msg,
   on_mark_final: fn(Int) -> msg,
@@ -226,11 +226,11 @@ fn score_button(label: String, msg: msg) -> Element(msg) {
 }
 
 fn final_action(
-  game: AdminGameSummary,
+  game: GameSummary,
   on_mark_final: fn(Int) -> msg,
 ) -> Element(msg) {
   case game.status {
-    AdminGamesFinal -> html.span([], [])
+    Final -> html.span([], [])
     _ ->
       html.button(
         [
@@ -242,7 +242,7 @@ fn final_action(
   }
 }
 
-fn upsert_game(model: Model, game: AdminGameSummary) -> Model {
+fn upsert_game(model: Model, game: GameSummary) -> Model {
   let games =
     list.map(model.games, fn(existing) {
       case existing.id == game.id {
@@ -254,8 +254,8 @@ fn upsert_game(model: Model, game: AdminGameSummary) -> Model {
   Model(games:)
 }
 
-fn game_update_summary(game: GameUpdate) -> AdminGameSummary {
-  AdminGamesSummary(
+fn game_update_summary(game: GameUpdate) -> GameSummary {
+  GameSummary(
     id: game.id,
     home_code: game.home_code,
     away_code: game.away_code,
@@ -276,7 +276,7 @@ fn admin_game_update(game: broadcasts.GameSnapshot) -> GameUpdate {
     status:,
   ) = game
 
-  AdminGamesUpdate(
+  GameUpdate(
     id:,
     home_code:,
     away_code:,
@@ -288,20 +288,18 @@ fn admin_game_update(game: broadcasts.GameSnapshot) -> GameUpdate {
 
 fn admin_game_status(status: broadcasts.GameStatus) -> GameStatus {
   case status {
-    broadcasts.BroadcastScheduled -> AdminGamesScheduled
-    broadcasts.BroadcastLive(period) -> AdminGamesLive(period)
-    broadcasts.BroadcastFinal -> AdminGamesFinal
+    broadcasts.BroadcastScheduled -> Scheduled
+    broadcasts.BroadcastLive(period) -> Live(period)
+    broadcasts.BroadcastFinal -> Final
   }
 }
 
 fn status_badge(status: GameStatus) -> Element(msg) {
   case status {
-    AdminGamesScheduled ->
-      html.span([attribute.class("badge")], [html.text("Scheduled")])
-    AdminGamesLive(period) ->
+    Scheduled -> html.span([attribute.class("badge")], [html.text("Scheduled")])
+    Live(period) ->
       html.span([attribute.class("badge live")], [html.text(period)])
-    AdminGamesFinal ->
-      html.span([attribute.class("badge final")], [html.text("Final")])
+    Final -> html.span([attribute.class("badge final")], [html.text("Final")])
   }
 }
 
@@ -372,7 +370,7 @@ fn map_save_result(
 /// modules call this, then wrap page data in the Rally/Libero load result shape.
 pub fn load(
   db: sqlight.Connection,
-) -> Result(List(AdminGameSummary), runtime_load.LoadError) {
+) -> Result(List(GameSummary), runtime_load.LoadError) {
   case games_sql.list_admin_games(db:) {
     Ok(rows) -> Ok(list.map(rows, admin_game_summary_from_row))
     Error(sqlight.SqlightError(..)) ->
@@ -427,8 +425,8 @@ pub fn after_save(
 @target(erlang)
 fn admin_game_summary_from_row(
   row: games_sql.ListAdminGamesRow,
-) -> AdminGameSummary {
-  AdminGamesSummary(
+) -> GameSummary {
+  GameSummary(
     id: row.id,
     home_code: row.home_code,
     away_code: row.away_code,
@@ -441,7 +439,7 @@ fn admin_game_summary_from_row(
 
 @target(erlang)
 fn game_update_from_score_row(row: games_sql.UpdateGameScoreRow) -> GameUpdate {
-  AdminGamesUpdate(
+  GameUpdate(
     id: row.id,
     home_code: row.home_code,
     away_code: row.away_code,
@@ -453,7 +451,7 @@ fn game_update_from_score_row(row: games_sql.UpdateGameScoreRow) -> GameUpdate {
 
 @target(erlang)
 fn game_update_from_final_row(row: games_sql.UpdateGameFinalRow) -> GameUpdate {
-  AdminGamesUpdate(
+  GameUpdate(
     id: row.id,
     home_code: row.home_code,
     away_code: row.away_code,
@@ -466,8 +464,8 @@ fn game_update_from_final_row(row: games_sql.UpdateGameFinalRow) -> GameUpdate {
 @target(erlang)
 fn game_status(period: String, final: Int) -> GameStatus {
   case final == 1, period {
-    True, _ -> AdminGamesFinal
-    False, "Scheduled" -> AdminGamesScheduled
-    False, _ -> AdminGamesLive(period)
+    True, _ -> Final
+    False, "Scheduled" -> Scheduled
+    False, _ -> Live(period)
   }
 }

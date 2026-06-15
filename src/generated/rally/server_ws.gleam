@@ -385,7 +385,7 @@ fn send_admin_games_load_result(
       None -> Error([runtime_load.LoadError(message: "Unauthorized.")])
       Some(_) ->
         case admin_games_wire.load(handlers.load_context(state)) {
-          Ok(data) -> Ok(admin_games_wire.AdminGamesLoadResult(data))
+          Ok(data) -> Ok(admin_games_wire.GamesLoaded(data))
           Error(runtime_load.LoadError(message: message)) -> Error([message])
         }
         |> map_page_load_result
@@ -413,7 +413,7 @@ fn send_public_games_id_load_result(
 ) -> Nil {
   let result =
     case public_games_id_wire.load(handlers.load_context(state), game_id) {
-      Ok(data) -> Ok(public_games_id_wire.PublicGameDetailLoaded(data))
+      Ok(data) -> Ok(public_games_id_wire.GameLoaded(data))
       Error(runtime_load.LoadError(message: message)) -> Error([message])
     }
     |> map_page_load_result
@@ -439,7 +439,7 @@ fn send_public_games_load_result(
 ) -> Nil {
   let result =
     case public_games_wire.load(handlers.load_context(state)) {
-      Ok(data) -> Ok(public_games_wire.PublicGamesLoaded(data))
+      Ok(data) -> Ok(public_games_wire.GamesLoaded(data))
       Error(runtime_load.LoadError(message: message)) -> Error([message])
     }
     |> map_page_load_result
@@ -465,7 +465,7 @@ fn send_public_standings_load_result(
 ) -> Nil {
   let result =
     case public_standings_wire.load(handlers.load_context(state)) {
-      Ok(data) -> Ok(public_standings_wire.PublicStandingsLoaded(data))
+      Ok(data) -> Ok(public_standings_wire.StandingsLoaded(data))
       Error(runtime_load.LoadError(message: message)) -> Error([message])
     }
     |> map_page_load_result
@@ -492,7 +492,7 @@ fn send_public_teams_slug_load_result(
 ) -> Nil {
   let result =
     case public_teams_slug_wire.load(handlers.load_context(state), slug) {
-      Ok(data) -> Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data))
+      Ok(data) -> Ok(public_teams_slug_wire.TeamLoaded(data))
       Error(runtime_load.LoadError(message: message)) -> Error([message])
     }
     |> map_page_load_result

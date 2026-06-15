@@ -5,7 +5,7 @@ import {
   decode_result_envelope,
   encode_public_games_request,
 } from "../build/dev/javascript/scoreboard_unified/generated/rally/client_protocol.mjs";
-import { Load, PublicGamesLoaded } from "../build/dev/javascript/scoreboard_unified/public/pages/games.mjs";
+import { Load, GamesLoaded } from "../build/dev/javascript/scoreboard_unified/public/pages/games.mjs";
 import { BitArray, Ok } from "../build/dev/javascript/scoreboard_unified/gleam.mjs";
 
 const baseUrl = process.env.SCOREBOARD_BASE_URL ?? "http://localhost:8081";
@@ -28,7 +28,7 @@ try {
   assert.equal(decodedResult[0][0], requestId);
   assert.ok(decodedResult[0][1] instanceof Ok, "load result should be Ok");
   assert.ok(
-    decodedResult[0][1][0] instanceof PublicGamesLoaded,
+    decodedResult[0][1][0] instanceof GamesLoaded,
     "load result should carry the page-local loaded data payload",
   );
 } finally {

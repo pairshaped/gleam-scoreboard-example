@@ -37,12 +37,12 @@ import generated/sql/admin/pages/games_sql
 import generated/rally/server
 
 pub type Model {
-  Model(games: List(AdminGameSummary), saving: Bool)
+  Model(games: List(GameSummary), saving: Bool)
 }
 
 pub type Message {
   AdjustHome(id: Int, home_score: Int, away_score: Int, delta: Int)
-  Loaded(Result(List(AdminGameSummary), runtime_load.LoadError))
+  Loaded(Result(List(GameSummary), runtime_load.LoadError))
   Saved(Result(GameUpdate, SaveError))
 }
 
@@ -58,7 +58,7 @@ pub type ServerMsg {
 }
 
 pub type LoadResult {
-  AdminGamesLoadResult(games: List(AdminGameSummary))
+  GamesLoaded(games: List(GameSummary))
 }
 
 pub fn view(model: Model) -> Element(Message) {
@@ -116,7 +116,7 @@ pub fn update(
 // SERVER
 
 @target(erlang)
-pub fn load(ctx) -> Result(List(AdminGameSummary), runtime_load.LoadError) {
+pub fn load(ctx) -> Result(List(GameSummary), runtime_load.LoadError) {
   todo
 }
 

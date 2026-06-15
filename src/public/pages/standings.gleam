@@ -61,7 +61,7 @@ pub type ServerMsg {
 }
 
 pub type LoadResult {
-  PublicStandingsLoaded(games: List(GameSummary))
+  StandingsLoaded(games: List(GameSummary))
 }
 
 pub type Model {

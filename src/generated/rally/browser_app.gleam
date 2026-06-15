@@ -104,7 +104,7 @@ pub fn admin_load_route(route route: admin_routes.Route) -> AdminLoadRoute {
     admin_routes.AdminGames ->
       AdminGamesLoad(message: admin_games_wire.Load, to_message: fn(result) {
         case result {
-          Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
+          Ok(admin_games_wire.GamesLoaded(data)) ->
             admin_pages.AdminGamesMsg(admin_games_wire.Loaded(Ok(data)))
           Error(errors) ->
             admin_pages.AdminGamesMsg(
@@ -117,7 +117,7 @@ pub fn admin_load_route(route route: admin_routes.Route) -> AdminLoadRoute {
     admin_routes.AdminHome ->
       AdminGamesLoad(message: admin_games_wire.Load, to_message: fn(result) {
         case result {
-          Ok(admin_games_wire.AdminGamesLoadResult(data)) ->
+          Ok(admin_games_wire.GamesLoaded(data)) ->
             admin_pages.AdminHomeMsg(admin_games_wire.Loaded(Ok(data)))
           Error(errors) ->
             admin_pages.AdminHomeMsg(
@@ -141,7 +141,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
             message: public_games_id_wire.Load(game_id:),
             to_message: fn(result) {
               case result {
-                Ok(public_games_id_wire.PublicGameDetailLoaded(data)) ->
+                Ok(public_games_id_wire.GameLoaded(data)) ->
                   public_pages.GamesIdMsg(public_games_id_wire.Loaded(Ok(data)))
                 Error(errors) ->
                   public_pages.GamesIdMsg(
@@ -159,7 +159,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.Games ->
       PublicGamesLoad(message: public_games_wire.Load, to_message: fn(result) {
         case result {
-          Ok(public_games_wire.PublicGamesLoaded(data)) ->
+          Ok(public_games_wire.GamesLoaded(data)) ->
             public_pages.GamesMsg(public_games_wire.Loaded(Ok(data)))
           Error(errors) ->
             public_pages.GamesMsg(
@@ -172,7 +172,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
     public_routes.Home ->
       PublicGamesLoad(message: public_games_wire.Load, to_message: fn(result) {
         case result {
-          Ok(public_games_wire.PublicGamesLoaded(data)) ->
+          Ok(public_games_wire.GamesLoaded(data)) ->
             public_pages.HomeMsg(public_games_wire.Loaded(Ok(data)))
           Error(errors) ->
             public_pages.HomeMsg(
@@ -187,7 +187,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
         message: public_standings_wire.Load,
         to_message: fn(result) {
           case result {
-            Ok(public_standings_wire.PublicStandingsLoaded(data)) ->
+            Ok(public_standings_wire.StandingsLoaded(data)) ->
               public_pages.StandingsMsg(public_standings_wire.Loaded(Ok(data)))
             Error(errors) ->
               public_pages.StandingsMsg(
@@ -203,7 +203,7 @@ pub fn public_load_route(route route: public_routes.Route) -> PublicLoadRoute {
         message: public_teams_slug_wire.Load(slug:),
         to_message: fn(result) {
           case result {
-            Ok(public_teams_slug_wire.PublicTeamDetailLoaded(data)) ->
+            Ok(public_teams_slug_wire.TeamLoaded(data)) ->
               public_pages.TeamsSlugMsg(public_teams_slug_wire.Loaded(Ok(data)))
             Error(errors) ->
               public_pages.TeamsSlugMsg(

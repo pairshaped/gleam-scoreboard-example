@@ -61,7 +61,7 @@ pub type ServerMsg {
 }
 
 pub type LoadResult {
-  PublicTeamDetailLoaded(team: TeamDetail)
+  TeamLoaded(team: TeamDetail)
 }
 
 pub type Model {
