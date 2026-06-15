@@ -1,8 +1,7 @@
 //// Shared authentication context for the signed-in browser identity.
 ////
 //// Mounts consume this type. They do not own authentication.
-//// Derived from the Generator Framework's authentication runtime contract.
-//// See docs/adr/0008-use-authentication-context-for-shared-identity.md.
+//// Auth policy stays in the server auth modules.
 
 import gleam/option.{type Option, None, Some}
 import gleam/string

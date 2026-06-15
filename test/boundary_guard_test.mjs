@@ -106,34 +106,34 @@ function assertNoAuthoredRoutingDispatch(projectPath) {
     return;
   }
 
-  const routingAdr =
-    "ADR 0003 says page filenames are the author-facing routing surface; " +
-    "generated Proute/Rally glue owns route and page dispatch.";
+  const routingRule =
+    "README Design Rules say page filenames are the author-facing routing " +
+    "surface; generated Proute/Rally glue owns route and page dispatch.";
 
   assertNoCodePatterns(projectPath, [
     {
       pattern: /import\s+generated\/proute\/(?:admin|public)\/routes\b/,
       reason: (file) =>
-        `${file} violates the ADR 0003 routing rule: authored modules must not import generated route modules. ${routingAdr}`,
+        `${file} violates the README routing rule: authored modules must not import generated route modules. ${routingRule}`,
     },
     {
       pattern: new RegExp(
         `\\b(?:admin_routes|public_routes|routes)\\.(?:${routeConstructors})\\b`,
       ),
       reason: (file) =>
-        `${file} violates the ADR 0003 routing rule: authored modules must not match generated route constructors. ${routingAdr}`,
+        `${file} violates the README routing rule: authored modules must not match generated route constructors. ${routingRule}`,
     },
     {
       pattern: new RegExp(
         `\\b(?:admin_pages|public_pages|pages)\\.(?:${pageConstructors})\\s*\\(`,
       ),
       reason: (file) =>
-        `${file} violates the ADR 0003 routing rule: authored modules must not match generated page constructors. ${routingAdr}`,
+        `${file} violates the README routing rule: authored modules must not match generated page constructors. ${routingRule}`,
     },
     {
       pattern: new RegExp(`\\b(?:${pageConstructors})\\s*\\(`),
       reason: (file) =>
-        `${file} violates the ADR 0003 routing rule: authored modules must not construct generated page wrappers. ${routingAdr}`,
+        `${file} violates the README routing rule: authored modules must not construct generated page wrappers. ${routingRule}`,
     },
   ]);
 }

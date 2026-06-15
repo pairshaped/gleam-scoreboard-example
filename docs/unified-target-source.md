@@ -24,6 +24,7 @@ A page module should read like a basic TEA SPA page with server handlers at the 
 ```gleam
 import components/ui
 import admin/page_shared_state.{type AdminPageSharedState}
+import broadcasts
 import generated/proute/admin/page_input
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
@@ -46,12 +47,17 @@ pub type Message {
 }
 
 pub type ServerMsg {
+  AdminGamesLoad
   AdminGamesUpdateScore(
     game_id: Int,
     home_score: Int,
     away_score: Int,
     period: String,
   )
+}
+
+pub type LoadResult {
+  AdminGamesLoadResult(games: List(AdminGameSummary))
 }
 
 pub fn view(model: Model) -> Element(Message) {
@@ -117,6 +123,14 @@ pub fn load(ctx) -> Result(List(AdminGameSummary), runtime_load.LoadError) {
 pub fn handle_save(ctx, msg: ServerMsg) -> Result(GameUpdate, SaveError) {
   todo
 }
+
+@target(erlang)
+pub fn after_save(
+  ctx,
+  game: GameUpdate,
+) -> Result(broadcasts.TargetedEvent, Nil) {
+  todo
+}
 ```
 
 Shared imports come first, followed by Erlang-targeted imports, then JavaScript-targeted imports. The module body follows the same target grouping when practical: shared declarations first, then init/shared declarations, then server/client sections for target-specific behavior.
@@ -124,6 +138,10 @@ Shared imports come first, followed by Erlang-targeted imports, then JavaScript-
 The section comments are for humans. Rally validates the page contract by function names, signatures, target availability, and wire-visible types.
 
 `initial_model` is the normal starting point for a page. `init` is optional. A page should define `init` only when it needs page-local browser startup work that cannot be represented as loaded page data or normal update behavior. Rally-generated browser glue calls `init` when it exists; otherwise it constructs the page with `initial_model` and no effect. Rally-generated SSR glue uses `initial_model` so server rendering never depends on browser-only effects.
+
+Pages that load server data define a page-local `ServerMsg` load variant, a `LoadResult`, and Erlang-only `load`. Pages that save server data define save variants on `ServerMsg`, browser update branches that call a generated page save effect, Erlang-only `handle_save`, and optional Erlang-only `after_save` when a successful save should emit a typed broadcast.
+
+Broadcast-capable pages define `broadcast_subscriptions` and `apply_broadcast`. Generated browser glue uses subscriptions to sync websocket topics for the active page, then routes decoded broadcast events back through the page's `apply_broadcast` hook.
 
 ## Generated Save Effects
 
@@ -193,10 +211,10 @@ Page data shapes belong to the page that renders and updates them. A list page, 
 
 Shared types are reserved for stable app concepts independent of a page, such as identifiers, enums, or value objects. Page payloads, form models, table rows, detail data, and save responses stay page local.
 
-The approved root wire namespaces are page-local types, `src/wire/**`, and
-`src/broadcasts.gleam`. Wire-visible page protocols may reference those types,
-primitives, and standard containers. They may not reference helper, service,
-query, business, formatting, or display types, even transitively.
+The approved wire namespaces are page-local types and `src/broadcasts.gleam`.
+Wire-visible page protocols may reference those types, primitives, and standard
+containers. They may not reference helper, service, query, business, formatting,
+or display types, even transitively.
 
 Helpers are still allowed as behavior. A page may call helpers and services, but their owned shapes cannot become wire contract shapes.
 
@@ -214,13 +232,18 @@ src/generated/sql/**/*.gleam
 
 Proute owns file routes, page enums, route params, query params, and page
 dispatch shape. Rally consumes Proute output and generates page protocol code,
-browser boot, hydration, SSR, client transport, and server dispatch. Libero
-writes codec, atom, wire, decoder, and contract artifacts. Marmot writes typed
-SQL modules for Erlang-only server paths.
+browser boot, hydration, SSR, client transport, websocket transport, server
+dispatch, theme, and result glue. Libero writes codec, atom, wire, decoder, and
+contract artifacts. Marmot writes typed SQL modules for Erlang-only server
+paths.
 
 Generated modules use the same target annotation rules as user-authored modules.
 
-Rally-generated code should be thin glue: codecs, route glue, wire transport, hydration, SSR, browser boot, server dispatch, and build metadata. Rally should not generate a full client app. Client-side application behavior is authored in Gleam, with JS or TS limited to tiny FFI modules for browser APIs.
+Rally-generated code should be thin glue: codecs, route glue, wire transport,
+hydration, SSR, browser boot, websocket transport, server dispatch, theme, and
+result envelopes. Rally should not generate a full client app. Client-side
+application behavior is authored in Gleam, with JS or TS limited to tiny FFI
+modules for browser APIs.
 
 ## Target Boundaries
 
